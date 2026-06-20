@@ -1,0 +1,1740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Karranoi — A Reference Grammar</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root{
+    --bg: #100c0a;
+    --bg-panel: #18120f;
+    --bg-panel-raised: #1f1714;
+    --bone: #e7ddc7;
+    --bone-dim: #a89a80;
+    --amber: #c98a3f;
+    --amber-bright: #e3a85c;
+    --rot: #5e3a2e;
+    --blood: #7a2e26;
+    --rule: #352922;
+    --shadow-deep: rgba(0,0,0,0.6);
+  }
+
+  *{ box-sizing: border-box; }
+
+  html{ scroll-behavior: smooth; }
+
+  body{
+    margin:0;
+    background: var(--bg);
+    background-image:
+      radial-gradient(ellipse 900px 500px at 15% -5%, rgba(201,138,63,0.06), transparent 60%),
+      radial-gradient(ellipse 700px 600px at 110% 30%, rgba(122,46,38,0.07), transparent 60%);
+    color: var(--bone);
+    font-family: 'Source Serif 4', serif;
+    line-height: 1.7;
+    font-size: 17px;
+  }
+
+  .display{
+    font-family: 'Cormorant Garamond', serif;
+    letter-spacing: 0.04em;
+  }
+
+  .mono{
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  a{ color: var(--amber-bright); text-decoration: none; }
+  a:hover{ text-decoration: underline; }
+
+  /* texture overlay */
+  .grain{
+    position: fixed; inset: 0; pointer-events: none; z-index: 1; opacity: 0.05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ===== Layout shell ===== */
+  .shell{ display: flex; min-height: 100vh; position: relative; z-index: 2; }
+
+  nav.toc{
+    width: 240px;
+    flex-shrink: 0;
+    background: var(--bg-panel);
+    border-right: 1px solid var(--rule);
+    padding: 2.5rem 1.5rem;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  nav.toc .toc-title{
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem;
+    color: var(--amber-bright);
+    margin: 0 0 0.3rem;
+    letter-spacing: 0.06em;
+  }
+  nav.toc .toc-sub{
+    font-size: 0.78rem;
+    color: var(--bone-dim);
+    margin: 0 0 2rem;
+    font-style: italic;
+  }
+  nav.toc ul{ list-style: none; padding: 0; margin: 0; }
+  nav.toc li{ margin-bottom: 0.65rem; }
+  nav.toc a{
+    color: var(--bone-dim);
+    font-size: 0.92rem;
+    transition: color 0.15s;
+  }
+  nav.toc a:hover{ color: var(--amber-bright); text-decoration: none; }
+
+  main{ flex: 1; min-width: 0; padding: 0 0 6rem; }
+
+  .hero{
+    padding: 5rem 4rem 3.5rem;
+    border-bottom: 1px solid var(--rule);
+    position: relative;
+  }
+  .hero .eyebrow{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin: 0 0 1.2rem;
+  }
+  .hero h1{
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: 4.6rem;
+    margin: 0 0 0.4rem;
+    color: var(--bone);
+    line-height: 1;
+    letter-spacing: 0.01em;
+  }
+  .hero h1 .dot-o{ position: relative; }
+  .hero .gloss{
+    font-style: italic;
+    color: var(--bone-dim);
+    font-size: 1.15rem;
+    margin: 0 0 1.8rem;
+  }
+  .hero .lede{
+    max-width: 640px;
+    color: var(--bone-dim);
+    font-size: 1.02rem;
+  }
+
+  section{ padding: 3.5rem 4rem; border-bottom: 1px solid var(--rule); }
+  section:last-child{ border-bottom: none; }
+
+  h2{
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: 2.2rem;
+    color: var(--bone);
+    margin: 0 0 0.3rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+  h2 .num{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    color: var(--amber);
+    font-weight: 400;
+  }
+  .section-intro{
+    color: var(--bone-dim);
+    max-width: 680px;
+    margin: 0 0 2.2rem;
+    font-size: 0.98rem;
+  }
+
+  h3{
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.45rem;
+    font-weight: 600;
+    color: var(--amber-bright);
+    margin: 2.2rem 0 0.8rem;
+  }
+  h3:first-of-type{ margin-top: 0; }
+
+  p{ max-width: 700px; }
+
+  /* ===== Letter grid (alphabet) ===== */
+  .letter-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+    gap: 10px;
+    margin: 1.2rem 0 1.8rem;
+    max-width: 760px;
+  }
+  .letter-card{
+    background: var(--bg-panel-raised);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 1rem 0.6rem 0.8rem;
+    text-align: center;
+    position: relative;
+  }
+  .letter-card .glyph{
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: var(--bone);
+    line-height: 1;
+    margin-bottom: 0.45rem;
+  }
+  .letter-card .glyph .dot{
+    position: relative;
+  }
+  .letter-card .glyph .dot::after{
+    content: '';
+    position: absolute;
+    width: 8px; height: 8px;
+    background: var(--amber-bright);
+    border-radius: 50%;
+    left: 50%; top: 44%;
+    transform: translate(-50%,-50%);
+  }
+  .letter-card .ipa{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--amber);
+    margin-bottom: 0.3rem;
+  }
+  .letter-card .desc{
+    font-size: 0.74rem;
+    color: var(--bone-dim);
+    line-height: 1.3;
+  }
+
+  .callout{
+    background: var(--bg-panel-raised);
+    border-left: 3px solid var(--amber);
+    border-radius: 0 6px 6px 0;
+    padding: 1rem 1.4rem;
+    max-width: 680px;
+    margin: 1.4rem 0;
+    font-size: 0.94rem;
+    color: var(--bone-dim);
+  }
+  .callout strong{ color: var(--amber-bright); font-style: normal; }
+
+  .callout.warn{ border-left-color: var(--blood); }
+  .callout.warn strong{ color: #d97a6c; }
+
+  /* ===== Tables ===== */
+  table{
+    width: 100%;
+    max-width: 760px;
+    border-collapse: collapse;
+    margin: 1rem 0 2rem;
+    font-size: 0.93rem;
+  }
+  table caption{
+    text-align: left;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.74rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 0.6rem;
+  }
+  th{
+    text-align: left;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--bone-dim);
+    border-bottom: 1px solid var(--rule);
+    padding: 0.55rem 0.8rem;
+    font-weight: 400;
+  }
+  td{
+    padding: 0.6rem 0.8rem;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  tr:hover td{ background: rgba(201,138,63,0.04); }
+  .karr{
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    color: var(--amber-bright);
+    font-size: 1.05rem;
+  }
+  .ipa-cell{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--bone-dim);
+  }
+  .tag{
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.04em;
+    padding: 0.15rem 0.45rem;
+    border-radius: 3px;
+    text-transform: uppercase;
+  }
+  .tag.living{ background: rgba(94,150,90,0.15); color: #8fc78a; }
+  .tag.inert{ background: rgba(120,120,140,0.15); color: #a3a3c2; }
+  .tag.dead{ background: rgba(122,46,38,0.18); color: #d97a6c; }
+  .tag.verb{ background: rgba(201,138,63,0.15); color: var(--amber-bright); }
+  .tag.proper{ background: rgba(201,138,63,0.22); color: var(--amber-bright); }
+
+  /* ===== Conjugation / grammar diagram blocks ===== */
+  .gram-row{
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    margin: 1.4rem 0;
+    flex-wrap: wrap;
+  }
+  .gram-block{
+    background: var(--bg-panel-raised);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 0.7rem 1.1rem;
+    text-align: center;
+  }
+  .gram-block .label{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    color: var(--bone-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+  }
+  .gram-block .val{
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem;
+    color: var(--amber-bright);
+    font-weight: 600;
+  }
+  .gram-arrow{ color: var(--bone-dim); font-size: 1.1rem; }
+
+  .reversal-demo{
+    background: var(--bg-panel-raised);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 1.5rem 1.8rem;
+    max-width: 680px;
+    margin: 1.4rem 0;
+  }
+  .reversal-row{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 0.6rem 0;
+  }
+  .reversal-row:first-child{ border-bottom: 1px dashed var(--rule); padding-bottom: 1rem; margin-bottom: 0.4rem; }
+  .reversal-words{
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--bone);
+  }
+  .reversal-words .pivot{ color: var(--amber-bright); }
+  .reversal-meaning{
+    font-style: italic;
+    color: var(--bone-dim);
+    font-size: 0.9rem;
+    white-space: nowrap;
+  }
+
+  /* ===== Conversation block ===== */
+  .convo{
+    max-width: 700px;
+    margin: 1.2rem 0 2rem;
+  }
+  .line{
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 1.2rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .line:last-child{ border-bottom: none; }
+  .speaker{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.74rem;
+    color: var(--amber);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding-top: 0.2rem;
+  }
+  .speaker.slappy{ color: #d97a6c; }
+  .line .karranoi-text{
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--bone);
+    margin: 0 0 0.2rem;
+  }
+  .line .gloss-text{
+    font-size: 0.88rem;
+    color: var(--bone-dim);
+    font-style: italic;
+    margin: 0;
+  }
+
+  /* ===== Dictionary search ===== */
+  .dict-controls{
+    display: flex;
+    gap: 0.7rem;
+    margin-bottom: 1.6rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  #dict-search{
+    background: var(--bg-panel-raised);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    color: var(--bone);
+    padding: 0.6rem 0.9rem;
+    font-family: 'Source Serif 4', serif;
+    font-size: 0.95rem;
+    flex: 1;
+    max-width: 320px;
+  }
+  #dict-search:focus{ outline: none; border-color: var(--amber); }
+  #dict-search::placeholder{ color: var(--bone-dim); }
+  .filter-btn{
+    background: var(--bg-panel-raised);
+    border: 1px solid var(--rule);
+    color: var(--bone-dim);
+    padding: 0.5rem 0.9rem;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .filter-btn:hover{ border-color: var(--amber); color: var(--amber-bright); }
+  .filter-btn.active{ background: rgba(201,138,63,0.15); border-color: var(--amber); color: var(--amber-bright); }
+
+  #dict-count{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.74rem;
+    color: var(--bone-dim);
+  }
+
+  .hidden-row{ display: none; }
+
+  /* ===== Translator ===== */
+  .translator-grid{
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 1.4rem;
+    align-items: stretch;
+    max-width: 820px;
+    margin: 1.4rem 0;
+  }
+  .translator-col{
+    background: var(--bg-panel-raised);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 1.2rem 1.3rem;
+    display: flex;
+    flex-direction: column;
+  }
+  .translator-col .col-label{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--bone-dim);
+    margin: 0 0 0.7rem;
+  }
+  #translate-input{
+    background: var(--bg-panel);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    color: var(--bone);
+    padding: 0.7rem 0.9rem;
+    font-family: 'Source Serif 4', serif;
+    font-size: 0.98rem;
+    flex: 1;
+    resize: vertical;
+    min-height: 90px;
+  }
+  #translate-input:focus{ outline: none; border-color: var(--amber); }
+  #translate-input::placeholder{ color: var(--bone-dim); }
+
+  .translator-mid{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #translate-btn{
+    background: rgba(201,138,63,0.15);
+    border: 1px solid var(--amber);
+    color: var(--amber-bright);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.8rem 1.1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  #translate-btn:hover{ background: rgba(201,138,63,0.28); }
+
+  .karranoi-output{
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: var(--bone);
+    margin: 0 0 0.8rem;
+    min-height: 1.6rem;
+    line-height: 1.5;
+  }
+  .pronunciation-output{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--bone-dim);
+    margin: 0;
+    line-height: 1.6;
+    min-height: 1.2rem;
+  }
+  .word-missing{ color: var(--bone-dim); font-style: italic; text-decoration: underline dotted; }
+  .word-found{ color: var(--amber-bright); }
+
+  @media (max-width: 720px){
+    .translator-grid{ grid-template-columns: 1fr; }
+    .translator-mid{ padding: 0.3rem 0; }
+  }
+
+  /* footer */
+  footer{
+    padding: 3rem 4rem;
+    text-align: center;
+    color: var(--bone-dim);
+    font-size: 0.85rem;
+    font-style: italic;
+  }
+
+  /* responsive */
+  @media (max-width: 900px){
+    nav.toc{ display: none; }
+    .hero, section, footer{ padding-left: 1.8rem; padding-right: 1.8rem; }
+    .hero h1{ font-size: 3.1rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="grain"></div>
+
+<div class="shell">
+  <nav class="toc">
+    <p class="toc-title">Karranoi</p>
+    <p class="toc-sub">a reference grammar</p>
+    <ul>
+      <li><a href="#origin">Origin</a></li>
+      <li><a href="#sounds">Sounds</a></li>
+      <li><a href="#alphabet">Alphabet</a></li>
+      <li><a href="#grammar">Grammar</a></li>
+      <li><a href="#dictionary">Dictionary</a></li>
+      <li><a href="#phrases">Useful phrases</a></li>
+      <li><a href="#translator">Translator</a></li>
+      <li><a href="#conversation">Sample conversation</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div class="hero">
+      <p class="eyebrow">A constructed language &middot; reference grammar</p>
+      <h1>Karran<span class="dot-o">o</span>i</h1>
+      <p class="gloss">/kar-ra-NO-i/ &mdash; literally &ldquo;tongue of waking-things&rdquo;</p>
+      <p class="lede">Karranoi is a small constructed language built from the bones of the real Slappy incantation, <em>&ldquo;Karru Marri Odonna Loma Molonu Karrano,&rdquo;</em> the phrase that brings the dummy to life across the Goosebumps books, films, and the 2023 series. Every sound, letter, and grammar rule below grows out of that one phrase &mdash; this page collects all of it in one place so you can actually learn to speak it.</p>
+    </div>
+
+    <section id="origin">
+      <h2><span class="num">00</span> Where this comes from</h2>
+      <p class="section-intro">Two real phrases from the Goosebumps franchise are the seed for everything here.</p>
+      <div class="reversal-demo">
+        <div class="reversal-row">
+          <span class="reversal-words">Karru Marri Odonna Loma Molonu <span class="pivot">Karrano</span></span>
+          <span class="reversal-meaning">wakes the dummy &mdash; &ldquo;you and I are one now&rdquo;</span>
+        </div>
+        <div class="reversal-row">
+          <span class="reversal-words"><span class="pivot">Karrano</span> Molonu Loma Odonna Marri Karru</span>
+          <span class="reversal-meaning">the same words, reversed &mdash; puts him to sleep forever</span>
+        </div>
+      </div>
+      <p>That reversal is the most important fact about this language. The same words, run backward, mean the opposite. Karranoi grammar is built around that single idea &mdash; see <a href="#grammar">Grammar &sect; Reversal</a>.</p>
+    </section>
+
+    <section id="sounds">
+      <h2><span class="num">01</span> Sounds</h2>
+      <p class="section-intro">Karranoi is deliberately harsh and guttural. Heavy on rolled R&rsquo;s and hard consonants, with a narrow, dark vowel set &mdash; and notably, no <strong>E</strong> sound at all.</p>
+
+      <h3>Consonants</h3>
+      <table>
+        <tr><th>Letter</th><th>Sound</th><th>Notes</th></tr>
+        <tr><td class="karr">K</td><td class="ipa-cell">as in &ldquo;kit&rdquo;</td><td>Always crisp, never softened</td></tr>
+        <tr><td class="karr">R</td><td class="ipa-cell">rolled, like Spanish &ldquo;perro&rdquo;</td><td>Never soft. This is the signature sound of the language</td></tr>
+        <tr><td class="karr">M</td><td class="ipa-cell">as in &ldquo;moon&rdquo;</td><td></td></tr>
+        <tr><td class="karr">D</td><td class="ipa-cell">as in &ldquo;dog&rdquo;</td><td></td></tr>
+        <tr><td class="karr">N</td><td class="ipa-cell">as in &ldquo;no&rdquo;</td><td></td></tr>
+        <tr><td class="karr">L</td><td class="ipa-cell">as in &ldquo;low&rdquo;</td><td></td></tr>
+        <tr><td class="karr">T</td><td class="ipa-cell">hard, slightly spat</td><td>Sharper than the English &ldquo;t&rdquo;</td></tr>
+        <tr><td class="karr">G</td><td class="ipa-cell">hard, as in &ldquo;go&rdquo;</td><td>Never soft (never like &ldquo;giant&rdquo;)</td></tr>
+        <tr><td class="karr">H</td><td class="ipa-cell">breathy, slightly raspy</td><td></td></tr>
+        <tr><td class="karr">V</td><td class="ipa-cell">as in &ldquo;void&rdquo;</td><td></td></tr>
+      </table>
+
+      <h3>Vowels</h3>
+      <table>
+        <tr><th>Letter</th><th>Sound</th><th>Notes</th></tr>
+        <tr><td class="karr">A</td><td class="ipa-cell">&ldquo;ah&rdquo; as in &ldquo;father&rdquo;</td><td></td></tr>
+        <tr><td class="karr">O</td><td class="ipa-cell">&ldquo;oh&rdquo; as in &ldquo;more&rdquo;</td><td></td></tr>
+        <tr><td class="karr">U</td><td class="ipa-cell">&ldquo;oo&rdquo; as in &ldquo;moon&rdquo;</td><td>Written as a dotted O &mdash; see Alphabet</td></tr>
+        <tr><td class="karr">I</td><td class="ipa-cell">short &ldquo;ih&rdquo; as in &ldquo;bit&rdquo;</td><td>Rare &mdash; stands out whenever it appears</td></tr>
+      </table>
+
+      <div class="callout">
+        <strong>Stress rule:</strong> stress always falls on the second-to-last syllable. <span class="karr">KAR</span>-ru, o-<span class="karr">DON</span>-na, mo-<span class="karr">LO</span>-nu.
+      </div>
+      <div class="callout">
+        <strong>Doubled letters</strong> (rr, nn, etc.) mean the sound is held a beat longer or hit harder &mdash; not a different sound. This is where the dramatic rolled R lives, as in <span class="karr">Karru</span>.
+      </div>
+      <div class="callout">
+        <strong>Fun fact:</strong> the Karranoi <span class="karr">U</span> sound is essentially the same vowel as the Swedish letter <strong>O</strong> (as in <em>"som"</em> or <em>"och"</em>) &mdash; while the Karranoi <span class="karr">O</span> sound matches the Lithuanian letter <strong>O</strong> (as in <em>"oras"</em>). Same letter, two different languages, two different sounds &mdash; which is part of why Karranoi spells <em>its</em> U as a dotted O in the first place.
+      </div>
+    </section>
+
+    <section id="alphabet">
+      <h2><span class="num">02</span> Alphabet</h2>
+      <p class="section-intro">Karranoi is written with the ordinary Latin alphabet, lightly stylized &mdash; readable at a glance even by someone who has never seen the language before. There is exactly one rule that breaks the pattern: the vowel <strong>U</strong> is always written as a dotted O.</p>
+
+      <div class="letter-grid">
+        <div class="letter-card"><div class="glyph">K</div><div class="ipa">k</div><div class="desc">kit</div></div>
+        <div class="letter-card"><div class="glyph">R</div><div class="ipa">r̃</div><div class="desc">rolled rr</div></div>
+        <div class="letter-card"><div class="glyph">M</div><div class="ipa">m</div><div class="desc">moon</div></div>
+        <div class="letter-card"><div class="glyph">D</div><div class="ipa">d</div><div class="desc">dog</div></div>
+        <div class="letter-card"><div class="glyph">N</div><div class="ipa">n</div><div class="desc">no</div></div>
+        <div class="letter-card"><div class="glyph">L</div><div class="ipa">l</div><div class="desc">low</div></div>
+        <div class="letter-card"><div class="glyph">T</div><div class="ipa">t&#660;</div><div class="desc">hard, spat</div></div>
+        <div class="letter-card"><div class="glyph">G</div><div class="ipa">g</div><div class="desc">go (hard)</div></div>
+        <div class="letter-card"><div class="glyph">H</div><div class="ipa">h&#660;</div><div class="desc">raspy</div></div>
+        <div class="letter-card"><div class="glyph">V</div><div class="ipa">v</div><div class="desc">void</div></div>
+        <div class="letter-card"><div class="glyph">A</div><div class="ipa">a</div><div class="desc">father</div></div>
+        <div class="letter-card"><div class="glyph">O</div><div class="ipa">o</div><div class="desc">more</div></div>
+        <div class="letter-card"><div class="glyph"><span class="dot">O</span></div><div class="ipa">u</div><div class="desc">moon &mdash; written as dotted O</div></div>
+        <div class="letter-card"><div class="glyph">I</div><div class="ipa">&#618;</div><div class="desc">bit (rare)</div></div>
+      </div>
+
+      <div class="callout">
+        <strong>Reading rule:</strong> every letter is pronounced exactly as written. No silent letters, no exceptions. If you can sound out the Latin alphabet, you can sound out Karranoi &mdash; the only thing to remember is that the dotted O is a U sound, not an O.
+      </div>
+
+      <h3>Worked example</h3>
+      <p>The word <span class="karr">Karru</span> (the verb root for &ldquo;to wake&rdquo;, found in the original spell) is spelled K&ndash;A&ndash;R&ndash;R&ndash;<span class="dot">O</span>: five letters, five sounds, no tricks.</p>
+    </section>
+
+    <section id="grammar">
+      <h2><span class="num">03</span> Grammar</h2>
+      <p class="section-intro">Karranoi keeps its grammar small on purpose, so it can actually be memorized and spoken. Four pieces: word order, noun class, tense, and two short marker words for questions and possession.</p>
+
+      <h3>Word order &amp; the reversal rule</h3>
+      <p>Ordinary sentences run <strong>Subject &rarr; Verb &rarr; Object</strong>, same as English. The distinctive rule, taken directly from the source material, is this: <strong>reversing the word order of a phrase inverts or negates its meaning.</strong> Karranoi has no separate word for &ldquo;not&rdquo; &mdash; instead, you flip the sentence.</p>
+      <div class="reversal-demo">
+        <div class="reversal-row">
+          <span class="reversal-words">Nu Vano Tova</span>
+          <span class="reversal-meaning">I go to the house</span>
+        </div>
+        <div class="reversal-row">
+          <span class="reversal-words">Tova Vano Nu</span>
+          <span class="reversal-meaning">I do <em>not</em> go to the house</span>
+        </div>
+      </div>
+
+      <h3>Noun classes</h3>
+      <p>Every noun belongs to one of three classes, marked by its final letter. The third class exists specifically for things that occupy the uncanny space between living and dead &mdash; dummies, dolls, ghosts.</p>
+      <table>
+        <tr><th>Class</th><th>Ending</th><th>Covers</th></tr>
+        <tr><td><span class="tag living">Living</span></td><td class="karr">&ndash;u</td><td>people, animals, anything that breathes</td></tr>
+        <tr><td><span class="tag inert">Inert</span></td><td class="karr">&ndash;a</td><td>objects, tools, non-living things</td></tr>
+        <tr><td><span class="tag dead">Animate&ndash;dead</span></td><td class="karr">&ndash;o</td><td>dummies, dolls, corpses &mdash; things that shouldn&rsquo;t move, but might</td></tr>
+      </table>
+      <p>Class isn&rsquo;t always mechanical &mdash; a handful of words were assigned their class by feel rather than formula, the way real folklore would. <span class="karr">Vanu</span> (soul) is Living because a soul is the seat of life; <span class="karr">Vanoru</span> (ghost) is Animate&ndash;dead because it&rsquo;s a soul gone wrong.</p>
+
+      <h3>Tense</h3>
+      <p>Verbs never conjugate. Tense is shown with a single marker word placed directly before the verb.</p>
+      <div class="gram-row">
+        <div class="gram-block"><div class="label">Past</div><div class="val">ko</div></div>
+        <span class="gram-arrow">+ verb</span>
+        <div class="gram-block"><div class="label">Present</div><div class="val">&mdash;</div></div>
+        <span class="gram-arrow">verb alone</span>
+        <div class="gram-block"><div class="label">Future</div><div class="val">na</div></div>
+        <span class="gram-arrow">+ verb</span>
+      </div>
+      <p><span class="karr">Nu Lonu</span> &mdash; I sleep &middot; <span class="karr">Nu Ko Lonu</span> &mdash; I slept &middot; <span class="karr">Nu Na Lonu</span> &mdash; I will sleep. The verb <span class="karr">Lonu</span> itself never changes shape.</p>
+
+      <h3>Questions</h3>
+      <p>Add <span class="karr">ka</span> to the very end of a sentence to turn a statement into a yes/no question &mdash; a spoken question mark. No word order change, no separate question words needed.</p>
+      <p><span class="karr">Du Vano Tova Ka</span> &mdash; Are you going to the house?</p>
+
+      <h3>Possession</h3>
+      <p>A short word placed before the noun shows ownership.</p>
+      <table>
+        <tr><th>Word</th><th>Meaning</th></tr>
+        <tr><td class="karr">mo</td><td>my</td></tr>
+        <tr><td class="karr">do</td><td>your</td></tr>
+        <tr><td class="karr">lo</td><td>his / her / its</td></tr>
+      </table>
+      <p><span class="karr">Do Karano</span> &mdash; your dummy.</p>
+
+      <h3>Plurals</h3>
+      <p>Add <span class="karr">&ndash;i</span> to the end of a noun to make it plural &mdash; it stacks directly onto the existing class ending, so the word still shows its noun class (living, inert, or animate-dead) at the same time as showing &ldquo;more than one.&rdquo;</p>
+      <div class="reversal-demo">
+        <div class="reversal-row">
+          <span class="reversal-words">Stelu</span>
+          <span class="reversal-meaning">star (singular)</span>
+        </div>
+        <div class="reversal-row">
+          <span class="reversal-words">Stel<span class="pivot">u</span><span class="pivot">i</span></span>
+          <span class="reversal-meaning">stars (plural)</span>
+        </div>
+      </div>
+      <p>More examples: <span class="karr">Horu</span> (friend) &rarr; <span class="karr">Horui</span> (friends). <span class="karr">Karano</span> (dummy) &rarr; <span class="karr">Karanoi</span> (dummies) &mdash; note this lands almost identical to <span class="karr">Karranoi</span>, the language&rsquo;s own name. A small, deliberately unsettling coincidence: many dummies and &ldquo;the tongue of waking-things&rdquo; sound nearly the same.</p>
+      <div class="callout warn">
+        <strong>Exception &mdash; numbers override the plural:</strong> once a number comes before a noun, the noun stays singular. The number already states the quantity, so <span class="karr">&ndash;i</span> is dropped. <span class="karr">Hanu Stelu</span> &mdash; five stars (<em>not</em> &ldquo;Hanu Stelui&rdquo;). <span class="karr">Trin Karano</span> &mdash; three dummies.
+      </div>
+    </section>
+
+    <section id="dictionary">
+      <h2><span class="num">04</span> Dictionary</h2>
+      <p class="section-intro">Search or filter the full word list below. Class tags follow the system from Grammar &sect; Noun classes.</p>
+
+      <div class="callout">
+        <strong>Building numbers:</strong> Karranoi has dedicated words for 1&ndash;10, plus 11, 12, and the tens (20, 30, 40, 50) and hundred/thousand. Beyond those, stack the tens-word and then the ones-digit after it, the same way English says &ldquo;twenty-three.&rdquo; 23 = <span class="karr">Doimodal Trin</span> (twenty, three). 47 = <span class="karr">Karomodal Settu</span> (forty, seven). No extra connecting word is needed between them.
+      </div>
+
+      <div class="dict-controls">
+        <input type="text" id="dict-search" placeholder="Search Karranoi or English&hellip;">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="everyday">Everyday</button>
+        <button class="filter-btn" data-filter="dark">Dark &amp; uncanny</button>
+        <span id="dict-count"></span>
+      </div>
+
+      <table id="dict-table">
+        <tr><th>Karranoi</th><th>Pronunciation</th><th>Class</th><th>Meaning</th></tr>
+
+        <!-- EVERYDAY: greetings & basics -->
+        <tr class="everyday"><td class="karr">Halu</td><td class="ipa-cell">HA-lu</td><td></td><td>hello</td></tr>
+        <tr class="everyday"><td class="karr">Nadama</td><td class="ipa-cell">na-DA-ma</td><td></td><td>goodbye</td></tr>
+        <tr class="everyday"><td class="karr">Ka</td><td class="ipa-cell">ka</td><td></td><td>yes &middot; also the question-marker word</td></tr>
+        <tr class="everyday"><td class="karr">Vor</td><td class="ipa-cell">vor</td><td></td><td>no</td></tr>
+        <tr class="everyday"><td class="karr">Targo</td><td class="ipa-cell">TAR-go</td><td></td><td>please</td></tr>
+        <tr class="everyday"><td class="karr">Modu</td><td class="ipa-cell">MO-du</td><td></td><td>thank you</td></tr>
+        <tr class="everyday"><td class="karr">Lorra</td><td class="ipa-cell">LOR-ra</td><td></td><td>sorry / forgive me</td></tr>
+
+        <!-- EVERYDAY: pronouns -->
+        <tr class="everyday"><td class="karr">Nu</td><td class="ipa-cell">nu</td><td></td><td>I / me</td></tr>
+        <tr class="everyday"><td class="karr">Du</td><td class="ipa-cell">du</td><td></td><td>you</td></tr>
+        <tr class="everyday"><td class="karr">Lo</td><td class="ipa-cell">lo</td><td></td><td>he / she / it</td></tr>
+        <tr class="everyday"><td class="karr">Numa</td><td class="ipa-cell">NU-ma</td><td></td><td>we / us</td></tr>
+        <tr class="everyday"><td class="karr">Duma</td><td class="ipa-cell">DU-ma</td><td></td><td>you all</td></tr>
+        <tr class="everyday"><td class="karr">Loma</td><td class="ipa-cell">LO-ma</td><td></td><td>they / them</td></tr>
+
+        <!-- EVERYDAY: verbs -->
+        <tr class="everyday"><td class="karr">Vano</td><td class="ipa-cell">VA-no</td><td><span class="tag verb">verb</span></td><td>to go / to walk</td></tr>
+        <tr class="everyday"><td class="karr">Marra</td><td class="ipa-cell">MAR-ra</td><td><span class="tag verb">verb</span></td><td>to come</td></tr>
+        <tr class="everyday"><td class="karr">Donu</td><td class="ipa-cell">DO-nu</td><td><span class="tag verb">verb</span></td><td>to eat</td></tr>
+        <tr class="everyday"><td class="karr">Holu</td><td class="ipa-cell">HO-lu</td><td><span class="tag verb">verb</span></td><td>to drink</td></tr>
+        <tr class="everyday"><td class="karr">Karu</td><td class="ipa-cell">KA-ru</td><td><span class="tag verb">verb</span></td><td>to speak / to say</td></tr>
+        <tr class="everyday"><td class="karr">Lonu</td><td class="ipa-cell">LO-nu</td><td><span class="tag verb">verb</span></td><td>to sleep</td></tr>
+        <tr class="everyday"><td class="karr">Vaku</td><td class="ipa-cell">VA-ku</td><td><span class="tag verb">verb</span></td><td>to wake (up)</td></tr>
+        <tr class="everyday"><td class="karr">Tado</td><td class="ipa-cell">TA-do</td><td><span class="tag verb">verb</span></td><td>to see</td></tr>
+        <tr class="everyday"><td class="karr">Granu</td><td class="ipa-cell">GRA-nu</td><td><span class="tag verb">verb</span></td><td>to hear</td></tr>
+        <tr class="everyday"><td class="karr">Modonu</td><td class="ipa-cell">mo-DO-nu</td><td><span class="tag verb">verb</span></td><td>to know / to understand</td></tr>
+        <tr class="everyday"><td class="karr">Havu</td><td class="ipa-cell">HA-vu</td><td><span class="tag verb">verb</span></td><td>to have / to hold</td></tr>
+
+        <!-- EVERYDAY: nouns -->
+        <tr class="everyday"><td class="karr">Donna</td><td class="ipa-cell">DON-na</td><td><span class="tag inert">inert</span></td><td>food</td></tr>
+        <tr class="everyday"><td class="karr">Vata</td><td class="ipa-cell">VA-ta</td><td><span class="tag inert">inert</span></td><td>water</td></tr>
+        <tr class="everyday"><td class="karr">Horu</td><td class="ipa-cell">HO-ru</td><td><span class="tag living">living</span></td><td>friend</td></tr>
+        <tr class="everyday"><td class="karr">Kanu</td><td class="ipa-cell">KA-nu</td><td><span class="tag living">living</span></td><td>enemy</td></tr>
+        <tr class="everyday"><td class="karr">Tova</td><td class="ipa-cell">TO-va</td><td><span class="tag inert">inert</span></td><td>house</td></tr>
+        <tr class="everyday"><td class="karr">Ranu</td><td class="ipa-cell">RA-nu</td><td><span class="tag inert">inert</span></td><td>day</td></tr>
+        <tr class="everyday"><td class="karr">Norru</td><td class="ipa-cell">NOR-ru</td><td><span class="tag inert">inert</span></td><td>night</td></tr>
+
+        <!-- EVERYDAY: family -->
+        <tr class="everyday"><td class="karr">Matu</td><td class="ipa-cell">MA-tu</td><td><span class="tag living">living</span></td><td>mother</td></tr>
+        <tr class="everyday"><td class="karr">Patu</td><td class="ipa-cell">PA-tu</td><td><span class="tag living">living</span></td><td>father</td></tr>
+        <tr class="everyday"><td class="karr">Druvu</td><td class="ipa-cell">DRU-vu</td><td><span class="tag living">living</span></td><td>brother</td></tr>
+        <tr class="everyday"><td class="karr">Drovu</td><td class="ipa-cell">DRO-vu</td><td><span class="tag living">living</span></td><td>sister</td></tr>
+        <tr class="everyday"><td class="karr">Garu</td><td class="ipa-cell">GA-ru</td><td><span class="tag living">living</span></td><td>child</td></tr>
+        <tr class="everyday"><td class="karr">Oldonu</td><td class="ipa-cell">ol-DO-nu</td><td><span class="tag living">living</span></td><td>old person / elder</td></tr>
+        <tr class="everyday"><td class="karr">Namu</td><td class="ipa-cell">NA-mu</td><td><span class="tag inert">inert</span></td><td>name</td></tr>
+
+        <!-- EVERYDAY: time & numbers -->
+        <tr class="everyday"><td class="karr">Talu</td><td class="ipa-cell">TA-lu</td><td><span class="tag inert">inert</span></td><td>hour</td></tr>
+        <tr class="everyday"><td class="karr">Mintu</td><td class="ipa-cell">MIN-tu</td><td><span class="tag inert">inert</span></td><td>minute</td></tr>
+        <tr class="everyday"><td class="karr">Adda</td><td class="ipa-cell">AD-da</td><td></td><td>now</td></tr>
+        <tr class="everyday"><td class="karr">Kova</td><td class="ipa-cell">KO-va</td><td></td><td>later</td></tr>
+        <tr class="everyday"><td class="karr">Onna</td><td class="ipa-cell">ON-na</td><td></td><td>before / already</td></tr>
+        <tr class="everyday"><td class="karr">Eru</td><td class="ipa-cell">E-ru</td><td><span class="tag inert">inert</span></td><td>year</td></tr>
+        <tr class="everyday"><td class="karr">Mensu</td><td class="ipa-cell">MEN-su</td><td><span class="tag inert">inert</span></td><td>month</td></tr>
+        <tr class="everyday"><td class="karr">Semana</td><td class="ipa-cell">se-MA-na</td><td><span class="tag inert">inert</span></td><td>week</td></tr>
+        <tr class="everyday"><td class="karr">Krastinu</td><td class="ipa-cell">kras-TI-nu</td><td><span class="tag inert">inert</span></td><td>tomorrow</td></tr>
+        <tr class="everyday"><td class="karr">Eristu</td><td class="ipa-cell">e-RIS-tu</td><td><span class="tag inert">inert</span></td><td>yesterday</td></tr>
+        <tr class="everyday"><td class="karr">Matinu</td><td class="ipa-cell">ma-TI-nu</td><td><span class="tag inert">inert</span></td><td>morning</td></tr>
+        <tr class="everyday"><td class="karr">Vesperu</td><td class="ipa-cell">ves-PE-ru</td><td><span class="tag inert">inert</span></td><td>evening</td></tr>
+        <tr class="everyday"><td class="karr">Primaveru</td><td class="ipa-cell">pri-ma-VE-ru</td><td><span class="tag inert">inert</span></td><td>spring</td></tr>
+        <tr class="everyday"><td class="karr">Estatu</td><td class="ipa-cell">es-TA-tu</td><td><span class="tag inert">inert</span></td><td>summer</td></tr>
+        <tr class="everyday"><td class="karr">Autonu</td><td class="ipa-cell">au-TO-nu</td><td><span class="tag inert">inert</span></td><td>autumn / fall</td></tr>
+        <tr class="everyday"><td class="karr">Hiveru</td><td class="ipa-cell">hi-VE-ru</td><td><span class="tag inert">inert</span></td><td>winter</td></tr>
+        <tr class="everyday"><td class="karr">Sundagu</td><td class="ipa-cell">sun-DA-gu</td><td><span class="tag inert">inert</span></td><td>Sunday</td></tr>
+        <tr class="everyday"><td class="karr">Mondagu</td><td class="ipa-cell">mon-DA-gu</td><td><span class="tag inert">inert</span></td><td>Monday</td></tr>
+        <tr class="everyday"><td class="karr">Tirsdagu</td><td class="ipa-cell">tirs-DA-gu</td><td><span class="tag inert">inert</span></td><td>Tuesday</td></tr>
+        <tr class="everyday"><td class="karr">Mersdagu</td><td class="ipa-cell">mers-DA-gu</td><td><span class="tag inert">inert</span></td><td>Wednesday</td></tr>
+        <tr class="everyday"><td class="karr">Torsdagu</td><td class="ipa-cell">tors-DA-gu</td><td><span class="tag inert">inert</span></td><td>Thursday</td></tr>
+        <tr class="everyday"><td class="karr">Fredagu</td><td class="ipa-cell">fre-DA-gu</td><td><span class="tag inert">inert</span></td><td>Friday</td></tr>
+        <tr class="everyday"><td class="karr">Sattudagu</td><td class="ipa-cell">sat-tu-DA-gu</td><td><span class="tag inert">inert</span></td><td>Saturday</td></tr>
+        <tr class="everyday"><td class="karr">Don</td><td class="ipa-cell">don</td><td></td><td>one</td></tr>
+        <tr class="everyday"><td class="karr">Dol</td><td class="ipa-cell">dol</td><td></td><td>two</td></tr>
+        <tr class="everyday"><td class="karr">Trin</td><td class="ipa-cell">trin</td><td></td><td>three</td></tr>
+        <tr class="everyday"><td class="karr">Karo</td><td class="ipa-cell">KA-ro</td><td></td><td>four</td></tr>
+        <tr class="everyday"><td class="karr">Hanu</td><td class="ipa-cell">HA-nu</td><td></td><td>five</td></tr>
+        <tr class="everyday"><td class="karr">Modal</td><td class="ipa-cell">MO-dal</td><td></td><td>ten</td></tr>
+        <tr class="everyday"><td class="karr">Sessu</td><td class="ipa-cell">SES-su</td><td></td><td>six</td></tr>
+        <tr class="everyday"><td class="karr">Settu</td><td class="ipa-cell">SET-tu</td><td></td><td>seven</td></tr>
+        <tr class="everyday"><td class="karr">Oktu</td><td class="ipa-cell">OK-tu</td><td></td><td>eight</td></tr>
+        <tr class="everyday"><td class="karr">Novu</td><td class="ipa-cell">NO-vu</td><td></td><td>nine</td></tr>
+        <tr class="everyday"><td class="karr">Modaldon</td><td class="ipa-cell">mo-dal-DON</td><td></td><td>eleven (ten + one)</td></tr>
+        <tr class="everyday"><td class="karr">Modaldol</td><td class="ipa-cell">mo-dal-DOL</td><td></td><td>twelve (ten + two)</td></tr>
+        <tr class="everyday"><td class="karr">Doimodal</td><td class="ipa-cell">do-i-mo-DAL</td><td></td><td>twenty (two-tens)</td></tr>
+        <tr class="everyday"><td class="karr">Trinmodal</td><td class="ipa-cell">trin-mo-DAL</td><td></td><td>thirty (three-tens)</td></tr>
+        <tr class="everyday"><td class="karr">Karomodal</td><td class="ipa-cell">ka-ro-mo-DAL</td><td></td><td>forty (four-tens)</td></tr>
+        <tr class="everyday"><td class="karr">Hanumodal</td><td class="ipa-cell">ha-nu-mo-DAL</td><td></td><td>fifty (five-tens)</td></tr>
+        <tr class="everyday"><td class="karr">Sentanu</td><td class="ipa-cell">sen-TA-nu</td><td></td><td>hundred</td></tr>
+        <tr class="everyday"><td class="karr">Milanu</td><td class="ipa-cell">mi-LA-nu</td><td></td><td>thousand</td></tr>
+
+        <!-- EVERYDAY: places & objects -->
+        <tr class="everyday"><td class="karr">Toma</td><td class="ipa-cell">TO-ma</td><td><span class="tag inert">inert</span></td><td>room</td></tr>
+        <tr class="everyday"><td class="karr">Vindu</td><td class="ipa-cell">VIN-du</td><td><span class="tag inert">inert</span></td><td>door</td></tr>
+        <tr class="everyday"><td class="karr">Granda</td><td class="ipa-cell">GRAN-da</td><td><span class="tag inert">inert</span></td><td>window</td></tr>
+        <tr class="everyday"><td class="karr">Karta</td><td class="ipa-cell">KAR-ta</td><td><span class="tag inert">inert</span></td><td>box / chest</td></tr>
+        <tr class="everyday"><td class="karr">Lampu</td><td class="ipa-cell">LAM-pu</td><td><span class="tag inert">inert</span></td><td>lamp / light</td></tr>
+        <tr class="everyday"><td class="karr">Strada</td><td class="ipa-cell">STRA-da</td><td><span class="tag inert">inert</span></td><td>street / road</td></tr>
+
+        <!-- EVERYDAY: adjectives -->
+        <tr class="everyday"><td class="karr">Vannu</td><td class="ipa-cell">VAN-nu</td><td></td><td>big</td></tr>
+        <tr class="everyday"><td class="karr">Tinu</td><td class="ipa-cell">TI-nu</td><td></td><td>small</td></tr>
+        <tr class="everyday"><td class="karr">Haru</td><td class="ipa-cell">HA-ru</td><td></td><td>good</td></tr>
+        <tr class="everyday"><td class="karr">Vornu</td><td class="ipa-cell">VOR-nu</td><td></td><td>bad</td></tr>
+        <tr class="everyday"><td class="karr">Holdu</td><td class="ipa-cell">HOL-du</td><td></td><td>cold</td></tr>
+        <tr class="everyday"><td class="karr">Varmu</td><td class="ipa-cell">VAR-mu</td><td></td><td>warm</td></tr>
+        <tr class="everyday"><td class="karr">Nuvu</td><td class="ipa-cell">NU-vu</td><td></td><td>new</td></tr>
+        <tr class="everyday"><td class="karr">Oldu</td><td class="ipa-cell">OL-du</td><td></td><td>old (describing a thing)</td></tr>
+        <tr class="everyday"><td class="karr">Bellanu</td><td class="ipa-cell">bel-LA-nu</td><td></td><td>beautiful</td></tr>
+
+        <!-- EVERYDAY: conversational essentials -->
+        <tr class="everyday"><td class="karr">Essu</td><td class="ipa-cell">ES-su</td><td><span class="tag verb">verb</span></td><td>to be (am / is / are)</td></tr>
+        <tr class="everyday"><td class="karr">Kovu</td><td class="ipa-cell">KO-vu</td><td></td><td>how</td></tr>
+        <tr class="everyday"><td class="karr">Kavo</td><td class="ipa-cell">KA-vo</td><td></td><td>what</td></tr>
+        <tr class="everyday"><td class="karr">Kavanu</td><td class="ipa-cell">ka-VA-nu</td><td></td><td>where</td></tr>
+        <tr class="everyday"><td class="karr">Kamortu</td><td class="ipa-cell">ka-MOR-tu</td><td></td><td>who</td></tr>
+        <tr class="everyday"><td class="karr">Kadolu</td><td class="ipa-cell">ka-DO-lu</td><td></td><td>why</td></tr>
+        <tr class="everyday"><td class="karr">Vollu</td><td class="ipa-cell">VOL-lu</td><td><span class="tag verb">verb</span></td><td>to want</td></tr>
+        <tr class="everyday"><td class="karr">Nessu</td><td class="ipa-cell">NES-su</td><td><span class="tag verb">verb</span></td><td>to need</td></tr>
+        <tr class="everyday"><td class="karr">Harvu</td><td class="ipa-cell">HAR-vu</td><td><span class="tag verb">verb</span></td><td>to like</td></tr>
+        <tr class="everyday"><td class="karr">Amoru</td><td class="ipa-cell">a-MO-ru</td><td><span class="tag verb">verb</span></td><td>to love</td></tr>
+        <tr class="everyday"><td class="karr">Sokoru</td><td class="ipa-cell">so-KO-ru</td><td><span class="tag verb">verb</span></td><td>to help</td></tr>
+        <tr class="everyday"><td class="karr">Possu</td><td class="ipa-cell">POS-su</td><td></td><td>can / able to</td></tr>
+        <tr class="everyday"><td class="karr">Multo</td><td class="ipa-cell">MUL-to</td><td></td><td>very</td></tr>
+        <tr class="everyday"><td class="karr">Esto</td><td class="ipa-cell">ES-to</td><td></td><td>this</td></tr>
+        <tr class="everyday"><td class="karr">Asto</td><td class="ipa-cell">AS-to</td><td></td><td>that</td></tr>
+        <tr class="everyday"><td class="karr">Adlo</td><td class="ipa-cell">AD-lo</td><td></td><td>here</td></tr>
+        <tr class="everyday"><td class="karr">Doslo</td><td class="ipa-cell">DOS-lo</td><td></td><td>there</td></tr>
+        <tr class="everyday"><td class="karr">Et</td><td class="ipa-cell">et</td><td></td><td>and</td></tr>
+        <tr class="everyday"><td class="karr">Ol</td><td class="ipa-cell">ol</td><td></td><td>or</td></tr>
+        <tr class="everyday"><td class="karr">Ven</td><td class="ipa-cell">ven</td><td></td><td>with</td></tr>
+        <tr class="everyday"><td class="karr">Ranadda</td><td class="ipa-cell">ran-AD-da</td><td><span class="tag inert">inert</span></td><td>today</td></tr>
+        <tr class="everyday"><td class="karr">Bonu</td><td class="ipa-cell">BO-nu</td><td></td><td>fine / okay / well</td></tr>
+
+        <!-- EVERYDAY: verbs, round 2 -->
+        <tr class="everyday"><td class="karr">Korru</td><td class="ipa-cell">KOR-ru</td><td><span class="tag verb">verb</span></td><td>to run</td></tr>
+        <tr class="everyday"><td class="karr">Sedu</td><td class="ipa-cell">SE-du</td><td><span class="tag verb">verb</span></td><td>to sit</td></tr>
+        <tr class="everyday"><td class="karr">Stadu</td><td class="ipa-cell">STA-du</td><td><span class="tag verb">verb</span></td><td>to stand</td></tr>
+        <tr class="everyday"><td class="karr">Pensu</td><td class="ipa-cell">PEN-su</td><td><span class="tag verb">verb</span></td><td>to think</td></tr>
+        <tr class="everyday"><td class="karr">Komparu</td><td class="ipa-cell">kom-PA-ru</td><td><span class="tag verb">verb</span></td><td>to buy</td></tr>
+        <tr class="everyday"><td class="karr">Vendu</td><td class="ipa-cell">VEN-du</td><td><span class="tag verb">verb</span></td><td>to sell</td></tr>
+        <tr class="everyday"><td class="karr">Laboru</td><td class="ipa-cell">la-BO-ru</td><td><span class="tag verb">verb</span></td><td>to work</td></tr>
+        <tr class="everyday"><td class="karr">Skrivu</td><td class="ipa-cell">SKRI-vu</td><td><span class="tag verb">verb</span></td><td>to write</td></tr>
+        <tr class="everyday"><td class="karr">Lektu</td><td class="ipa-cell">LEK-tu</td><td><span class="tag verb">verb</span></td><td>to read</td></tr>
+        <tr class="everyday"><td class="karr">Faktu</td><td class="ipa-cell">FAK-tu</td><td><span class="tag verb">verb</span></td><td>to make / to do</td></tr>
+        <tr class="everyday"><td class="karr">Givu</td><td class="ipa-cell">GI-vu</td><td><span class="tag verb">verb</span></td><td>to give</td></tr>
+        <tr class="everyday"><td class="karr">Prendu</td><td class="ipa-cell">PREN-du</td><td><span class="tag verb">verb</span></td><td>to take</td></tr>
+        <tr class="everyday"><td class="karr">Findu</td><td class="ipa-cell">FIN-du</td><td><span class="tag verb">verb</span></td><td>to find</td></tr>
+        <tr class="everyday"><td class="karr">Perdu</td><td class="ipa-cell">PER-du</td><td><span class="tag verb">verb</span></td><td>to lose (an object)</td></tr>
+        <tr class="everyday"><td class="karr">Movu</td><td class="ipa-cell">MO-vu</td><td><span class="tag verb">verb</span></td><td>to move</td></tr>
+        <tr class="everyday"><td class="karr">Restu</td><td class="ipa-cell">RES-tu</td><td><span class="tag verb">verb</span></td><td>to stay / to remain</td></tr>
+        <tr class="everyday"><td class="karr">Vivu</td><td class="ipa-cell">VI-vu</td><td><span class="tag verb">verb</span></td><td>to live</td></tr>
+        <tr class="everyday"><td class="karr">Krescu</td><td class="ipa-cell">KRES-ku</td><td><span class="tag verb">verb</span></td><td>to grow</td></tr>
+        <tr class="everyday"><td class="karr">Kambu</td><td class="ipa-cell">KAM-bu</td><td><span class="tag verb">verb</span></td><td>to change</td></tr>
+        <tr class="everyday"><td class="karr">Aprenu</td><td class="ipa-cell">a-PRE-nu</td><td><span class="tag verb">verb</span></td><td>to learn</td></tr>
+        <tr class="everyday"><td class="karr">Ensenu</td><td class="ipa-cell">en-SE-nu</td><td><span class="tag verb">verb</span></td><td>to teach</td></tr>
+        <tr class="everyday"><td class="karr">Demandu</td><td class="ipa-cell">de-MAN-du</td><td><span class="tag verb">verb</span></td><td>to ask</td></tr>
+        <tr class="everyday"><td class="karr">Respondu</td><td class="ipa-cell">res-PON-du</td><td><span class="tag verb">verb</span></td><td>to answer</td></tr>
+        <tr class="everyday"><td class="karr">Pagu</td><td class="ipa-cell">PA-gu</td><td><span class="tag verb">verb</span></td><td>to pay</td></tr>
+        <tr class="everyday"><td class="karr">Kostu</td><td class="ipa-cell">KOS-tu</td><td><span class="tag verb">verb</span></td><td>to cost</td></tr>
+        <tr class="everyday"><td class="karr">Portu</td><td class="ipa-cell">POR-tu</td><td><span class="tag verb">verb</span></td><td>to carry</td></tr>
+        <tr class="everyday"><td class="karr">Tiru</td><td class="ipa-cell">TI-ru</td><td><span class="tag verb">verb</span></td><td>to pull</td></tr>
+        <tr class="everyday"><td class="karr">Pushu</td><td class="ipa-cell">PU-shu</td><td><span class="tag verb">verb</span></td><td>to push</td></tr>
+        <tr class="everyday"><td class="karr">Tokku</td><td class="ipa-cell">TOK-ku</td><td><span class="tag verb">verb</span></td><td>to touch</td></tr>
+        <tr class="everyday"><td class="karr">Sentu</td><td class="ipa-cell">SEN-tu</td><td><span class="tag verb">verb</span></td><td>to feel</td></tr>
+        <tr class="everyday"><td class="karr">Pensaru</td><td class="ipa-cell">pen-SA-ru</td><td><span class="tag verb">verb</span></td><td>to remember</td></tr>
+        <tr class="everyday"><td class="karr">Obliu</td><td class="ipa-cell">OB-li-u</td><td><span class="tag verb">verb</span></td><td>to forget</td></tr>
+        <tr class="everyday"><td class="karr">Espuru</td><td class="ipa-cell">es-PU-ru</td><td><span class="tag verb">verb</span></td><td>to hope</td></tr>
+        <tr class="everyday"><td class="karr">Tentu</td><td class="ipa-cell">TEN-tu</td><td><span class="tag verb">verb</span></td><td>to try</td></tr>
+        <tr class="everyday"><td class="karr">Finu</td><td class="ipa-cell">FI-nu</td><td><span class="tag verb">verb</span></td><td>to finish</td></tr>
+        <tr class="everyday"><td class="karr">Komensu</td><td class="ipa-cell">ko-MEN-su</td><td><span class="tag verb">verb</span></td><td>to begin / to start</td></tr>
+        <tr class="everyday"><td class="karr">Atendu</td><td class="ipa-cell">a-TEN-du</td><td><span class="tag verb">verb</span></td><td>to wait</td></tr>
+        <tr class="everyday"><td class="karr">Volu</td><td class="ipa-cell">VO-lu</td><td><span class="tag verb">verb</span></td><td>to fly</td></tr>
+        <tr class="everyday"><td class="karr">Kadu</td><td class="ipa-cell">KA-du</td><td><span class="tag verb">verb</span></td><td>to fall</td></tr>
+        <tr class="everyday"><td class="karr">Salu</td><td class="ipa-cell">SA-lu</td><td><span class="tag verb">verb</span></td><td>to jump</td></tr>
+        <tr class="everyday"><td class="karr">Nadu</td><td class="ipa-cell">NA-du</td><td><span class="tag verb">verb</span></td><td>to swim</td></tr>
+        <tr class="everyday"><td class="karr">Konstru</td><td class="ipa-cell">KON-stru</td><td><span class="tag verb">verb</span></td><td>to build</td></tr>
+        <tr class="everyday"><td class="karr">Distru</td><td class="ipa-cell">DIS-tru</td><td><span class="tag verb">verb</span></td><td>to destroy</td></tr>
+        <tr class="everyday"><td class="karr">Protegu</td><td class="ipa-cell">pro-TE-gu</td><td><span class="tag verb">verb</span></td><td>to protect</td></tr>
+        <tr class="everyday"><td class="karr">Atakku</td><td class="ipa-cell">a-TAK-ku</td><td><span class="tag verb">verb</span></td><td>to attack</td></tr>
+        <tr class="everyday"><td class="karr">Defendu</td><td class="ipa-cell">de-FEN-du</td><td><span class="tag verb">verb</span></td><td>to defend</td></tr>
+        <tr class="everyday"><td class="karr">Vinku</td><td class="ipa-cell">VIN-ku</td><td><span class="tag verb">verb</span></td><td>to win</td></tr>
+        <tr class="everyday"><td class="karr">Perdaru</td><td class="ipa-cell">per-DA-ru</td><td><span class="tag verb">verb</span></td><td>to lose (a contest)</td></tr>
+        <tr class="everyday"><td class="karr">Inkontru</td><td class="ipa-cell">in-KON-tru</td><td><span class="tag verb">verb</span></td><td>to meet</td></tr>
+
+        <!-- EVERYDAY: emotions & feelings -->
+        <tr class="everyday"><td class="karr">Galadu</td><td class="ipa-cell">ga-LA-du</td><td></td><td>happy / joyful</td></tr>
+        <tr class="everyday"><td class="karr">Tristu</td><td class="ipa-cell">TRIS-tu</td><td></td><td>sad</td></tr>
+        <tr class="everyday"><td class="karr">Furiu</td><td class="ipa-cell">FU-ri-u</td><td></td><td>angry</td></tr>
+        <tr class="everyday"><td class="karr">Kalmu</td><td class="ipa-cell">KAL-mu</td><td></td><td>calm</td></tr>
+        <tr class="everyday"><td class="karr">Stressu</td><td class="ipa-cell">STRES-su</td><td></td><td>stressed</td></tr>
+        <tr class="everyday"><td class="karr">Fatigu</td><td class="ipa-cell">fa-TI-gu</td><td></td><td>tired</td></tr>
+        <tr class="everyday"><td class="karr">Boredu</td><td class="ipa-cell">bo-RE-du</td><td></td><td>bored</td></tr>
+        <tr class="everyday"><td class="karr">Eksitu</td><td class="ipa-cell">ek-SI-tu</td><td></td><td>excited</td></tr>
+        <tr class="everyday"><td class="karr">Nervu</td><td class="ipa-cell">NER-vu</td><td></td><td>nervous</td></tr>
+        <tr class="everyday"><td class="karr">Konfusu</td><td class="ipa-cell">kon-FU-su</td><td></td><td>confused</td></tr>
+        <tr class="everyday"><td class="karr">Surprendu</td><td class="ipa-cell">sur-PREN-du</td><td><span class="tag verb">verb</span></td><td>to surprise</td></tr>
+        <tr class="everyday"><td class="karr">Surprenu</td><td class="ipa-cell">sur-PRE-nu</td><td></td><td>surprised</td></tr>
+        <tr class="everyday"><td class="karr">Jelu</td><td class="ipa-cell">JE-lu</td><td></td><td>jealous</td></tr>
+        <tr class="everyday"><td class="karr">Orgolu</td><td class="ipa-cell">or-GO-lu</td><td></td><td>proud</td></tr>
+        <tr class="everyday"><td class="karr">Vergonu</td><td class="ipa-cell">ver-GO-nu</td><td></td><td>ashamed / embarrassed</td></tr>
+        <tr class="everyday"><td class="karr">Solu</td><td class="ipa-cell">SO-lu</td><td></td><td>lonely</td></tr>
+        <tr class="everyday"><td class="karr">Konfortu</td><td class="ipa-cell">kon-FOR-tu</td><td></td><td>comfortable</td></tr>
+        <tr class="everyday"><td class="karr">Insekuru</td><td class="ipa-cell">in-se-KU-ru</td><td></td><td>insecure</td></tr>
+        <tr class="everyday"><td class="karr">Sperantu</td><td class="ipa-cell">spe-RAN-tu</td><td></td><td>hopeful</td></tr>
+        <tr class="everyday"><td class="karr">Desperu</td><td class="ipa-cell">des-PE-ru</td><td></td><td>hopeless / desperate</td></tr>
+        <tr class="everyday"><td class="karr">Kontentu</td><td class="ipa-cell">kon-TEN-tu</td><td></td><td>satisfied / content</td></tr>
+        <tr class="everyday"><td class="karr">Frustru</td><td class="ipa-cell">FRUS-tru</td><td></td><td>frustrated</td></tr>
+        <tr class="everyday"><td class="karr">Kuriozu</td><td class="ipa-cell">ku-ri-O-zu</td><td></td><td>curious</td></tr>
+        <tr class="everyday"><td class="karr">Indiferu</td><td class="ipa-cell">in-di-FE-ru</td><td></td><td>indifferent</td></tr>
+        <tr class="everyday"><td class="karr">Grattu</td><td class="ipa-cell">GRAT-tu</td><td></td><td>grateful</td></tr>
+        <tr class="everyday"><td class="karr">Amaru</td><td class="ipa-cell">a-MA-ru</td><td></td><td>bitter (emotionally)</td></tr>
+        <tr class="everyday"><td class="karr">Pasenu</td><td class="ipa-cell">pa-SE-nu</td><td></td><td>patient</td></tr>
+        <tr class="everyday"><td class="karr">Impasenu</td><td class="ipa-cell">im-pa-SE-nu</td><td></td><td>impatient</td></tr>
+
+        <!-- EVERYDAY: common objects -->
+        <tr class="everyday"><td class="karr">Telefonu</td><td class="ipa-cell">te-le-FO-nu</td><td><span class="tag inert">inert</span></td><td>phone</td></tr>
+        <tr class="everyday"><td class="karr">Komputu</td><td class="ipa-cell">kom-PU-tu</td><td><span class="tag inert">inert</span></td><td>computer</td></tr>
+        <tr class="everyday"><td class="karr">Vetturu</td><td class="ipa-cell">vet-TU-ru</td><td><span class="tag inert">inert</span></td><td>car</td></tr>
+        <tr class="everyday"><td class="karr">Moneta</td><td class="ipa-cell">mo-NE-ta</td><td><span class="tag inert">inert</span></td><td>money</td></tr>
+        <tr class="everyday"><td class="karr">Vestu</td><td class="ipa-cell">VES-tu</td><td><span class="tag inert">inert</span></td><td>clothes</td></tr>
+        <tr class="everyday"><td class="karr">Skarpu</td><td class="ipa-cell">SKAR-pu</td><td><span class="tag inert">inert</span></td><td>shoe</td></tr>
+        <tr class="everyday"><td class="karr">Saku</td><td class="ipa-cell">SA-ku</td><td><span class="tag inert">inert</span></td><td>bag</td></tr>
+        <tr class="everyday"><td class="karr">Klavu</td><td class="ipa-cell">KLA-vu</td><td><span class="tag inert">inert</span></td><td>key</td></tr>
+        <tr class="everyday"><td class="karr">Pappiru</td><td class="ipa-cell">pap-PI-ru</td><td><span class="tag inert">inert</span></td><td>paper</td></tr>
+        <tr class="everyday"><td class="karr">Pennu</td><td class="ipa-cell">PEN-nu</td><td><span class="tag inert">inert</span></td><td>pen</td></tr>
+        <tr class="everyday"><td class="karr">Libru</td><td class="ipa-cell">LI-bru</td><td><span class="tag inert">inert</span></td><td>book</td></tr>
+        <tr class="everyday"><td class="karr">Tablu</td><td class="ipa-cell">TAB-lu</td><td><span class="tag inert">inert</span></td><td>table</td></tr>
+        <tr class="everyday"><td class="karr">Seju</td><td class="ipa-cell">SE-ju</td><td><span class="tag inert">inert</span></td><td>chair</td></tr>
+        <tr class="everyday"><td class="karr">Bettu</td><td class="ipa-cell">BET-tu</td><td><span class="tag inert">inert</span></td><td>bed</td></tr>
+        <tr class="everyday"><td class="karr">Pjattu</td><td class="ipa-cell">PJAT-tu</td><td><span class="tag inert">inert</span></td><td>plate</td></tr>
+        <tr class="everyday"><td class="karr">Kuppu</td><td class="ipa-cell">KUP-pu</td><td><span class="tag inert">inert</span></td><td>cup</td></tr>
+        <tr class="everyday"><td class="karr">Kutellu</td><td class="ipa-cell">ku-TEL-lu</td><td><span class="tag inert">inert</span></td><td>knife</td></tr>
+        <tr class="everyday"><td class="karr">Forku</td><td class="ipa-cell">FOR-ku</td><td><span class="tag inert">inert</span></td><td>fork</td></tr>
+        <tr class="everyday"><td class="karr">Klotsu</td><td class="ipa-cell">KLOT-su</td><td><span class="tag inert">inert</span></td><td>clock</td></tr>
+        <tr class="everyday"><td class="karr">Borsu</td><td class="ipa-cell">BOR-su</td><td><span class="tag inert">inert</span></td><td>wallet</td></tr>
+        <tr class="everyday"><td class="karr">Anellu</td><td class="ipa-cell">a-NEL-lu</td><td><span class="tag inert">inert</span></td><td>ring (jewelry)</td></tr>
+        <tr class="everyday"><td class="karr">Okkialu</td><td class="ipa-cell">ok-ki-A-lu</td><td><span class="tag inert">inert</span></td><td>glasses (eyewear)</td></tr>
+        <tr class="everyday"><td class="karr">Kappellu</td><td class="ipa-cell">kap-PEL-lu</td><td><span class="tag inert">inert</span></td><td>hat</td></tr>
+        <tr class="everyday"><td class="karr">Umbrellu</td><td class="ipa-cell">um-BREL-lu</td><td><span class="tag inert">inert</span></td><td>umbrella</td></tr>
+
+        <!-- EVERYDAY: places & nature -->
+        <tr class="everyday"><td class="karr">Forestu</td><td class="ipa-cell">fo-RES-tu</td><td><span class="tag inert">inert</span></td><td>forest</td></tr>
+        <tr class="everyday"><td class="karr">Montanu</td><td class="ipa-cell">mon-TA-nu</td><td><span class="tag inert">inert</span></td><td>mountain</td></tr>
+        <tr class="everyday"><td class="karr">Cittu</td><td class="ipa-cell">CHIT-tu</td><td><span class="tag inert">inert</span></td><td>city</td></tr>
+        <tr class="everyday"><td class="karr">Vilagu</td><td class="ipa-cell">vi-LA-gu</td><td><span class="tag inert">inert</span></td><td>village</td></tr>
+        <tr class="everyday"><td class="karr">Oceanu</td><td class="ipa-cell">o-che-A-nu</td><td><span class="tag inert">inert</span></td><td>ocean</td></tr>
+        <tr class="everyday"><td class="karr">Lagu</td><td class="ipa-cell">LA-gu</td><td><span class="tag inert">inert</span></td><td>lake</td></tr>
+        <tr class="everyday"><td class="karr">Riveru</td><td class="ipa-cell">ri-VE-ru</td><td><span class="tag inert">inert</span></td><td>river</td></tr>
+        <tr class="everyday"><td class="karr">Campu</td><td class="ipa-cell">KAM-pu</td><td><span class="tag inert">inert</span></td><td>field</td></tr>
+        <tr class="everyday"><td class="karr">Dezertu</td><td class="ipa-cell">de-ZER-tu</td><td><span class="tag inert">inert</span></td><td>desert</td></tr>
+        <tr class="everyday"><td class="karr">Islu</td><td class="ipa-cell">IS-lu</td><td><span class="tag inert">inert</span></td><td>island</td></tr>
+        <tr class="everyday"><td class="karr">Vallu</td><td class="ipa-cell">VAL-lu</td><td><span class="tag inert">inert</span></td><td>valley</td></tr>
+        <tr class="everyday"><td class="karr">Beachu</td><td class="ipa-cell">BE-a-chu</td><td><span class="tag inert">inert</span></td><td>beach</td></tr>
+        <tr class="everyday"><td class="karr">Arbu</td><td class="ipa-cell">AR-bu</td><td><span class="tag inert">inert</span></td><td>tree</td></tr>
+        <tr class="everyday"><td class="karr">Florru</td><td class="ipa-cell">FLOR-ru</td><td><span class="tag inert">inert</span></td><td>flower</td></tr>
+        <tr class="everyday"><td class="karr">Erbu</td><td class="ipa-cell">ER-bu</td><td><span class="tag inert">inert</span></td><td>grass</td></tr>
+        <tr class="everyday"><td class="karr">Skogu</td><td class="ipa-cell">SKO-gu</td><td><span class="tag inert">inert</span></td><td>woods</td></tr>
+        <tr class="everyday"><td class="karr">Pietra</td><td class="ipa-cell">pi-E-tra</td><td><span class="tag inert">inert</span></td><td>stone / rock</td></tr>
+        <tr class="everyday"><td class="karr">Sablu</td><td class="ipa-cell">SAB-lu</td><td><span class="tag inert">inert</span></td><td>sand</td></tr>
+        <tr class="everyday"><td class="karr">Nebla</td><td class="ipa-cell">NE-bla</td><td><span class="tag inert">inert</span></td><td>fog</td></tr>
+        <tr class="everyday"><td class="karr">Plovu</td><td class="ipa-cell">PLO-vu</td><td><span class="tag inert">inert</span></td><td>rain</td></tr>
+        <tr class="everyday"><td class="karr">Vintu</td><td class="ipa-cell">VIN-tu</td><td><span class="tag inert">inert</span></td><td>wind</td></tr>
+        <tr class="everyday"><td class="karr">Soliu</td><td class="ipa-cell">SO-li-u</td><td><span class="tag inert">inert</span></td><td>sun</td></tr>
+        <tr class="everyday"><td class="karr">Lunu</td><td class="ipa-cell">LU-nu</td><td><span class="tag inert">inert</span></td><td>moon</td></tr>
+        <tr class="everyday"><td class="karr">Stelu</td><td class="ipa-cell">STE-lu</td><td><span class="tag inert">inert</span></td><td>star</td></tr>
+
+        <!-- DARK: death & body -->
+        <tr class="dark"><td class="karr">Mortu</td><td class="ipa-cell">MOR-tu</td><td><span class="tag inert">inert</span></td><td>death</td></tr>
+        <tr class="dark"><td class="karr">Karmortu</td><td class="ipa-cell">kar-MOR-tu</td><td><span class="tag verb">verb</span></td><td>to die</td></tr>
+        <tr class="dark"><td class="karr">Dolanu</td><td class="ipa-cell">do-LA-nu</td><td><span class="tag dead">animate-dead</span></td><td>corpse</td></tr>
+        <tr class="dark"><td class="karr">Vanu</td><td class="ipa-cell">VA-nu</td><td><span class="tag living">living</span></td><td>soul / spirit</td></tr>
+        <tr class="dark"><td class="karr">Vanoru</td><td class="ipa-cell">va-NO-ru</td><td><span class="tag dead">animate-dead</span></td><td>ghost</td></tr>
+        <tr class="dark"><td class="karr">Sangra</td><td class="ipa-cell">SAN-gra</td><td><span class="tag inert">inert</span></td><td>blood</td></tr>
+        <tr class="dark"><td class="karr">Ossu</td><td class="ipa-cell">OS-su</td><td><span class="tag inert">inert</span></td><td>bone</td></tr>
+        <tr class="dark"><td class="karr">Kranu</td><td class="ipa-cell">KRA-nu</td><td><span class="tag verb">verb</span></td><td>to scream</td></tr>
+        <tr class="dark"><td class="karr">Lokranu</td><td class="ipa-cell">lo-KRA-nu</td><td><span class="tag inert">inert</span></td><td>a scream</td></tr>
+
+        <!-- DARK: uncanny -->
+        <tr class="dark"><td class="karr">Karano</td><td class="ipa-cell">ka-RA-no</td><td><span class="tag dead">animate-dead</span></td><td>dummy / puppet</td></tr>
+        <tr class="dark"><td class="karr">Vodano</td><td class="ipa-cell">vo-DA-no</td><td><span class="tag dead">animate-dead</span></td><td>doll</td></tr>
+        <tr class="dark"><td class="karr">Karranoi</td><td class="ipa-cell">kar-ra-NO-i</td><td><span class="tag proper">proper</span></td><td>the language itself &mdash; &ldquo;tongue of waking-things&rdquo;</td></tr>
+        <tr class="dark"><td class="karr">Hollovu</td><td class="ipa-cell">hol-LO-vu</td><td><span class="tag living">living</span></td><td>sorcerer / dark magician</td></tr>
+        <tr class="dark"><td class="karr">Vorgu</td><td class="ipa-cell">VOR-gu</td><td><span class="tag inert">inert</span></td><td>curse</td></tr>
+        <tr class="dark"><td class="karr">Karvorgu</td><td class="ipa-cell">kar-VOR-gu</td><td><span class="tag verb">verb</span></td><td>to curse</td></tr>
+        <tr class="dark"><td class="karr">Dolmoru</td><td class="ipa-cell">dol-MO-ru</td><td><span class="tag verb">verb</span></td><td>to possess / take over a body</td></tr>
+        <tr class="dark"><td class="karr">Nokto</td><td class="ipa-cell">NOK-to</td><td><span class="tag inert">inert</span></td><td>darkness</td></tr>
+        <tr class="dark"><td class="karr">Vandolu</td><td class="ipa-cell">van-DO-lu</td><td><span class="tag inert">inert</span></td><td>nightmare</td></tr>
+        <tr class="dark"><td class="karr">Kristani</td><td class="ipa-cell">kris-TA-ni</td><td><span class="tag proper">proper</span></td><td>the empty hour &mdash; the dead of night, around 3am, when the veil between living and animate-dead is thinnest</td></tr>
+
+        <!-- DARK: atmosphere / fear -->
+        <tr class="dark"><td class="karr">Dravu</td><td class="ipa-cell">DRA-vu</td><td><span class="tag verb">verb</span></td><td>to fear</td></tr>
+        <tr class="dark"><td class="karr">Lodravu</td><td class="ipa-cell">lo-DRA-vu</td><td><span class="tag inert">inert</span></td><td>fear</td></tr>
+        <tr class="dark"><td class="karr">Hannoru</td><td class="ipa-cell">han-NO-ru</td><td><span class="tag inert">inert</span></td><td>terror, dread</td></tr>
+        <tr class="dark"><td class="karr">Krannu</td><td class="ipa-cell">KRAN-nu</td><td><span class="tag verb">verb</span></td><td>to laugh (often unsettling)</td></tr>
+        <tr class="dark"><td class="karr">Sillu</td><td class="ipa-cell">SIL-lu</td><td><span class="tag inert">inert</span></td><td>silence</td></tr>
+        <tr class="dark"><td class="karr">Vatado</td><td class="ipa-cell">va-TA-do</td><td><span class="tag verb">verb</span></td><td>to stare</td></tr>
+
+        <!-- DARK: decay & horror -->
+        <tr class="dark"><td class="karr">Rottu</td><td class="ipa-cell">ROT-tu</td><td><span class="tag inert">inert</span></td><td>rot / decay</td></tr>
+        <tr class="dark"><td class="karr">Karrottu</td><td class="ipa-cell">kar-ROT-tu</td><td><span class="tag verb">verb</span></td><td>to rot, to decay</td></tr>
+        <tr class="dark"><td class="karr">Vermu</td><td class="ipa-cell">VER-mu</td><td><span class="tag inert">inert</span></td><td>worm / maggot</td></tr>
+        <tr class="dark"><td class="karr">Tombo</td><td class="ipa-cell">TOM-bo</td><td><span class="tag inert">inert</span></td><td>grave / tomb</td></tr>
+        <tr class="dark"><td class="karr">Karavu</td><td class="ipa-cell">ka-RA-vu</td><td><span class="tag inert">inert</span></td><td>coffin</td></tr>
+        <tr class="dark"><td class="karr">Skellu</td><td class="ipa-cell">SKEL-lu</td><td><span class="tag inert">inert</span></td><td>skeleton</td></tr>
+        <tr class="dark"><td class="karr">Dolgranu</td><td class="ipa-cell">dol-GRA-nu</td><td><span class="tag verb">verb</span></td><td>to suffer</td></tr>
+        <tr class="dark"><td class="karr">Lodolu</td><td class="ipa-cell">lo-DO-lu</td><td><span class="tag inert">inert</span></td><td>suffering, pain</td></tr>
+        <tr class="dark"><td class="karr">Agonu</td><td class="ipa-cell">a-GO-nu</td><td><span class="tag inert">inert</span></td><td>agony</td></tr>
+        <tr class="dark"><td class="karr">Vlato</td><td class="ipa-cell">VLA-to</td><td><span class="tag inert">inert</span></td><td>wound</td></tr>
+        <tr class="dark"><td class="karr">Sangranu</td><td class="ipa-cell">san-GRA-nu</td><td><span class="tag verb">verb</span></td><td>to bleed</td></tr>
+
+        <!-- DARK: occult -->
+        <tr class="dark"><td class="karr">Ritu</td><td class="ipa-cell">RI-tu</td><td><span class="tag inert">inert</span></td><td>ritual</td></tr>
+        <tr class="dark"><td class="karr">Karritu</td><td class="ipa-cell">kar-RI-tu</td><td><span class="tag verb">verb</span></td><td>to perform a ritual</td></tr>
+        <tr class="dark"><td class="karr">Ovannu</td><td class="ipa-cell">o-VAN-nu</td><td><span class="tag living">living</span></td><td>demon</td></tr>
+        <tr class="dark"><td class="karr">Hollovordu</td><td class="ipa-cell">hol-lo-VOR-du</td><td><span class="tag living">living</span></td><td>witch</td></tr>
+        <tr class="dark"><td class="karr">Granmoru</td><td class="ipa-cell">gran-MO-ru</td><td><span class="tag inert">inert</span></td><td>tomb-magic / dark power</td></tr>
+        <tr class="dark"><td class="karr">Vokranu</td><td class="ipa-cell">vo-KRA-nu</td><td><span class="tag verb">verb</span></td><td>to summon</td></tr>
+        <tr class="dark"><td class="karr">Lovoku</td><td class="ipa-cell">lo-VO-ku</td><td><span class="tag inert">inert</span></td><td>summoning, the act of calling something forth</td></tr>
+        <tr class="dark"><td class="karr">Marinu</td><td class="ipa-cell">ma-RI-nu</td><td><span class="tag verb">verb</span></td><td>to bind / to trap</td></tr>
+        <tr class="dark"><td class="karr">Lomarinu</td><td class="ipa-cell">lo-ma-RI-nu</td><td><span class="tag inert">inert</span></td><td>a binding, a trap</td></tr>
+        <tr class="dark"><td class="karr">Esku</td><td class="ipa-cell">ES-ku</td><td><span class="tag living">living</span></td><td>shadow-creature, something that lurks</td></tr>
+
+        <!-- DARK: emotion deeper -->
+        <tr class="dark"><td class="karr">Lokrannu</td><td class="ipa-cell">lo-KRAN-nu</td><td><span class="tag inert">inert</span></td><td>madness</td></tr>
+        <tr class="dark"><td class="karr">Karlokrannu</td><td class="ipa-cell">kar-lo-KRAN-nu</td><td><span class="tag verb">verb</span></td><td>to go mad</td></tr>
+        <tr class="dark"><td class="karr">Vannodravu</td><td class="ipa-cell">van-no-DRA-vu</td><td><span class="tag inert">inert</span></td><td>dread (deeper than lodravu)</td></tr>
+        <tr class="dark"><td class="karr">Trembu</td><td class="ipa-cell">TREM-bu</td><td><span class="tag verb">verb</span></td><td>to shake / tremble</td></tr>
+        <tr class="dark"><td class="karr">Hollantu</td><td class="ipa-cell">hol-LAN-tu</td><td><span class="tag verb">verb</span></td><td>to whisper</td></tr>
+        <tr class="dark"><td class="karr">Lohollantu</td><td class="ipa-cell">lo-hol-LAN-tu</td><td><span class="tag inert">inert</span></td><td>a whisper</td></tr>
+        <tr class="dark"><td class="karr">Krodu</td><td class="ipa-cell">KRO-du</td><td><span class="tag verb">verb</span></td><td>to grin / smirk unsettlingly</td></tr>
+        <tr class="dark"><td class="karr">Targranu</td><td class="ipa-cell">tar-GRA-nu</td><td><span class="tag verb">verb</span></td><td>to watch / to lurk</td></tr>
+
+        <!-- DARK: settings -->
+        <tr class="dark"><td class="karr">Attiko</td><td class="ipa-cell">AT-ti-ko</td><td><span class="tag inert">inert</span></td><td>attic</td></tr>
+        <tr class="dark"><td class="karr">Sutterro</td><td class="ipa-cell">sut-TER-ro</td><td><span class="tag inert">inert</span></td><td>basement / cellar</td></tr>
+        <tr class="dark"><td class="karr">Karkano</td><td class="ipa-cell">kar-KA-no</td><td><span class="tag inert">inert</span></td><td>cabinet / closet</td></tr>
+        <tr class="dark"><td class="karr">Vellu</td><td class="ipa-cell">VEL-lu</td><td><span class="tag inert">inert</span></td><td>veil / curtain</td></tr>
+        <tr class="dark"><td class="karr">Kandlu</td><td class="ipa-cell">KAND-lu</td><td><span class="tag inert">inert</span></td><td>candle</td></tr>
+        <tr class="dark"><td class="karr">Mirru</td><td class="ipa-cell">MIR-ru</td><td><span class="tag inert">inert</span></td><td>mirror</td></tr>
+        <tr class="dark"><td class="karr">Sombra</td><td class="ipa-cell">SOM-bra</td><td><span class="tag inert">inert</span></td><td>shadow (cast by light, not a creature)</td></tr>
+
+        <!-- PEOPLE & ROLES -->
+        <tr class="dark"><td class="karr">Mortavu</td><td class="ipa-cell">mor-TA-vu</td><td><span class="tag living">living</span></td><td>human &mdash; literally &ldquo;one who can die&rdquo;</td></tr>
+        <tr class="everyday"><td class="karr">Garavu</td><td class="ipa-cell">ga-RA-vu</td><td><span class="tag living">living</span></td><td>stranger</td></tr>
+        <tr class="dark"><td class="karr">Vannoru</td><td class="ipa-cell">van-NO-ru</td><td><span class="tag living">living</span></td><td>master / owner</td></tr>
+        <tr class="dark"><td class="karr">Slavu</td><td class="ipa-cell">SLA-vu</td><td><span class="tag living">living</span></td><td>servant / slave</td></tr>
+        <tr class="everyday"><td class="karr">Targu</td><td class="ipa-cell">TAR-gu</td><td><span class="tag living">living</span></td><td>hunter</td></tr>
+        <tr class="dark"><td class="karr">Targanu</td><td class="ipa-cell">tar-GA-nu</td><td><span class="tag living">living</span></td><td>prey, one who is hunted</td></tr>
+        <tr class="everyday"><td class="karr">Driftu</td><td class="ipa-cell">DRIF-tu</td><td><span class="tag living">living</span></td><td>wanderer</td></tr>
+        <tr class="dark"><td class="karr">Sleperu</td><td class="ipa-cell">sle-PE-ru</td><td><span class="tag living">living</span></td><td>sleeper, one who sleeps unaware of danger</td></tr>
+
+        <!-- ANIMALS -->
+        <tr class="everyday"><td class="karr">Kanivu</td><td class="ipa-cell">ka-NI-vu</td><td><span class="tag living">living</span></td><td>dog</td></tr>
+        <tr class="everyday"><td class="karr">Mirravu</td><td class="ipa-cell">mir-RA-vu</td><td><span class="tag living">living</span></td><td>cat</td></tr>
+        <tr class="dark"><td class="karr">Korvu</td><td class="ipa-cell">KOR-vu</td><td><span class="tag living">living</span></td><td>crow / raven</td></tr>
+        <tr class="dark"><td class="karr">Vespu</td><td class="ipa-cell">VES-pu</td><td><span class="tag living">living</span></td><td>bat</td></tr>
+        <tr class="dark"><td class="karr">Aranu</td><td class="ipa-cell">a-RA-nu</td><td><span class="tag living">living</span></td><td>spider</td></tr>
+        <tr class="dark"><td class="karr">Sserpu</td><td class="ipa-cell">SSER-pu</td><td><span class="tag living">living</span></td><td>snake</td></tr>
+        <tr class="dark"><td class="karr">Ratto</td><td class="ipa-cell">RAT-to</td><td><span class="tag living">living</span></td><td>rat</td></tr>
+        <tr class="dark"><td class="karr">Mossu</td><td class="ipa-cell">MOS-su</td><td><span class="tag living">living</span></td><td>moth</td></tr>
+
+        <!-- BODY & SENSES -->
+        <tr class="everyday"><td class="karr">Okku</td><td class="ipa-cell">OK-ku</td><td><span class="tag inert">inert</span></td><td>eye</td></tr>
+        <tr class="dark"><td class="karr">Okkuvu</td><td class="ipa-cell">ok-KU-vu</td><td><span class="tag verb">verb</span></td><td>to look / gaze with intent</td></tr>
+        <tr class="everyday"><td class="karr">Vossu</td><td class="ipa-cell">VOS-su</td><td><span class="tag inert">inert</span></td><td>voice</td></tr>
+        <tr class="everyday"><td class="karr">Manu</td><td class="ipa-cell">MA-nu</td><td><span class="tag inert">inert</span></td><td>hand</td></tr>
+        <tr class="everyday"><td class="karr">Korpu</td><td class="ipa-cell">KOR-pu</td><td><span class="tag inert">inert</span></td><td>body</td></tr>
+        <tr class="everyday"><td class="karr">Pellu</td><td class="ipa-cell">PEL-lu</td><td><span class="tag inert">inert</span></td><td>skin</td></tr>
+        <tr class="dark"><td class="karr">Kordu</td><td class="ipa-cell">KOR-du</td><td><span class="tag inert">inert</span></td><td>heart</td></tr>
+      </table>
+    </section>
+
+    <section id="phrases">
+      <h2><span class="num">05</span> Useful phrases</h2>
+      <p class="section-intro">Ready-made lines built from the grammar and dictionary above. Speak them slowly &mdash; draw out every vowel, and let each R roll fully before moving on. Karranoi was made to be spoken unhurried, like the speaker already knows how the conversation ends.</p>
+
+      <table>
+        <tr><th>Karranoi</th><th>Pronunciation</th><th>Meaning</th></tr>
+        <tr><td class="karr">Halu, Mortavu.</td><td class="ipa-cell">HA-lu, mor-TA-vu</td><td>Hello, fellow human.</td></tr>
+        <tr><td class="karr">Namu Du Ka?</td><td class="ipa-cell">NA-mu du ka</td><td>What is your name?</td></tr>
+        <tr><td class="karr">Nu Targranu Du.</td><td class="ipa-cell">nu tar-GRA-nu du</td><td>I am watching you.</td></tr>
+        <tr><td class="karr">Du Na Lonu.</td><td class="ipa-cell">du na LO-nu</td><td>You will sleep.</td></tr>
+        <tr><td class="karr">Nu Vor Dravu.</td><td class="ipa-cell">nu vor DRA-vu</td><td>I do not fear.</td></tr>
+        <tr><td class="karr">Sillu, Adda.</td><td class="ipa-cell">SIL-lu, AD-da</td><td>Silence, now.</td></tr>
+        <tr><td class="karr">Lo Marra Norru Kristani.</td><td class="ipa-cell">lo MAR-ra NOR-ru kris-TA-ni</td><td>It comes at the empty hour.</td></tr>
+        <tr><td class="karr">Du Karmortu Na.</td><td class="ipa-cell">du kar-MOR-tu na</td><td>You will die.</td></tr>
+        <tr><td class="karr">Nu Havu Du.</td><td class="ipa-cell">nu HA-vu du</td><td>I have you. / You are mine now.</td></tr>
+        <tr><td class="karr">Vaku, Karano.</td><td class="ipa-cell">VA-ku, ka-RA-no</td><td>Wake, dummy.</td></tr>
+      </table>
+
+      <div class="callout">
+        <strong>On pacing:</strong> Karranoi has no marked rhythm of its own &mdash; speed is a performance choice. For the unsettling, deliberate delivery, hold the stressed syllable about twice as long as you normally would, and let a half-beat of silence sit between words, especially before the final word of a sentence.
+      </div>
+    </section>
+
+    <section id="translator">
+      <h2><span class="num">06</span> English &rarr; Karranoi translator</h2>
+      <p class="section-intro">Type an English sentence and this looks up each word in the dictionary above. It is a word-for-word lookup, not a grammar engine &mdash; Karranoi only has a couple hundred words of vocabulary, so this can&rsquo;t translate everything, and it won&rsquo;t apply word order, tense markers, or the reversal rule for you. Treat its output as raw material: rearrange it yourself using <a href="#grammar">Grammar</a> above (Subject&ndash;Verb&ndash;Object order, <span class="karr">ko</span>/<span class="karr">na</span> for tense, reverse the order to negate). Words it can&rsquo;t find are <span class="word-missing">underlined like this</span> in the output and left in English.</p>
+      <div class="callout">
+        <strong>Grammar note:</strong> Karranoi has no articles &mdash; there is no word for &ldquo;a&rdquo; or &ldquo;the.&rdquo; These will always show as missing, which is correct: simply drop them when speaking. &ldquo;The dummy wakes&rdquo; becomes just <span class="karr">Karano Vaku</span>.
+      </div>
+
+      <div class="translator-grid">
+        <div class="translator-col">
+          <p class="col-label">English</p>
+          <textarea id="translate-input" placeholder="Type an English sentence&hellip;"></textarea>
+        </div>
+        <div class="translator-mid">
+          <button id="translate-btn" type="button">Translate &rarr;</button>
+        </div>
+        <div class="translator-col">
+          <p class="col-label">Karranoi</p>
+          <p class="karranoi-output" id="translate-result">&mdash;</p>
+          <p class="col-label" style="margin-top: 0.4rem;">Pronunciation</p>
+          <p class="pronunciation-output" id="translate-pronunciation">&mdash;</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="conversation">
+      <h2><span class="num">05</span> Sample conversation</h2>
+      <p class="section-intro">A short exchange using only words and grammar covered above &mdash; enough to actually practice with.</p>
+
+      <div class="convo">
+        <div class="line">
+          <div class="speaker">You</div>
+          <div>
+            <p class="karranoi-text">Halu. Namu Du Ka?</p>
+            <p class="ipa-cell" style="margin: 0 0 0.3rem;">HA-lu. NA-mu du ka?</p>
+            <p class="gloss-text">Hello. Is your name &hellip;? &mdash; literally &ldquo;name you, yes/question?&rdquo;</p>
+          </div>
+        </div>
+        <div class="line">
+          <div class="speaker slappy">Karano</div>
+          <div>
+            <p class="karranoi-text">Ka. Nu Karano. Du Dravu Nu Ka?</p>
+            <p class="ipa-cell" style="margin: 0 0 0.3rem;">ka. nu ka-RA-no. du DRA-vu nu ka?</p>
+            <p class="gloss-text">Yes. I am a dummy. Do you fear me?</p>
+          </div>
+        </div>
+        <div class="line">
+          <div class="speaker">You</div>
+          <div>
+            <p class="karranoi-text">Vor. Nu Vor Dravu Du.</p>
+            <p class="ipa-cell" style="margin: 0 0 0.3rem;">vor. nu vor DRA-vu du.</p>
+            <p class="gloss-text">No. I do not fear you. &mdash; note the reversal: word order flipped to negate &ldquo;Nu Dravu Du.&rdquo;</p>
+          </div>
+        </div>
+        <div class="line">
+          <div class="speaker slappy">Karano</div>
+          <div>
+            <p class="karranoi-text">Krodu. Ko Vaku Nu, Norru Kristani.</p>
+            <p class="ipa-cell" style="margin: 0 0 0.3rem;">KRO-du. ko VA-ku nu, NOR-ru kris-TA-ni.</p>
+            <p class="gloss-text">He grins. I woke, the night of the empty hour.</p>
+          </div>
+        </div>
+        <div class="line">
+          <div class="speaker">You</div>
+          <div>
+            <p class="karranoi-text">Lo Karu Lodravu Mo.</p>
+            <p class="ipa-cell" style="margin: 0 0 0.3rem;">lo KA-ru lo-DRA-vu mo.</p>
+            <p class="gloss-text">That gives me fear. &mdash; literally &ldquo;it speaks my fear&rdquo;</p>
+          </div>
+        </div>
+        <div class="line">
+          <div class="speaker slappy">Karano</div>
+          <div>
+            <p class="karranoi-text">Haru. Targranu Nu Du, Norru Na Marra.</p>
+            <p class="ipa-cell" style="margin: 0 0 0.3rem;">HA-ru. tar-GRA-nu nu du, NOR-ru na MAR-ra.</p>
+            <p class="gloss-text">Good. I watch you. The night will come.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<footer>
+  <p>Karranoi &mdash; built from the bones of an old spell.<br>Karru Marri Odonna Loma Molonu Karrano.</p>
+</footer>
+
+<script>
+  const searchInput = document.getElementById('dict-search');
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  const dictTable = document.getElementById('dict-table');
+  const rows = Array.from(dictTable.querySelectorAll('tr')).slice(1); // skip header row
+  const countEl = document.getElementById('dict-count');
+  let activeFilter = 'all';
+
+  function applyFilters(){
+    const query = searchInput.value.trim().toLowerCase();
+    let visible = 0;
+    rows.forEach(row => {
+      const matchesFilter = activeFilter === 'all' || row.classList.contains(activeFilter);
+      const text = row.textContent.toLowerCase();
+      const matchesSearch = query === '' || text.includes(query);
+      const show = matchesFilter && matchesSearch;
+      row.classList.toggle('hidden-row', !show);
+      if (show) visible++;
+    });
+    countEl.textContent = visible + ' / ' + rows.length + ' words';
+  }
+
+  searchInput.addEventListener('input', applyFilters);
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFilter = btn.dataset.filter;
+      applyFilters();
+    });
+  });
+
+  applyFilters();
+
+  // ===== Translator =====
+  // English -> [Karranoi word, pronunciation]. Keys are lowercase, lemma-ish forms.
+  // Built from the dictionary sections above (everyday + dark + people/animals/body).
+  const lexicon = {
+    "hello": ["Halu", "HA-lu"],
+    "goodbye": ["Nadama", "na-DA-ma"],
+    "yes": ["Ka", "ka"],
+    "no": ["Vor", "vor"],
+    "please": ["Targo", "TAR-go"],
+    "thank": ["Modu", "MO-du"],
+    "thanks": ["Modu", "MO-du"],
+    "sorry": ["Lorra", "LOR-ra"],
+    "i": ["Nu", "nu"],
+    "me": ["Nu", "nu"],
+    "you": ["Du", "du"],
+    "he": ["Lo", "lo"],
+    "she": ["Lo", "lo"],
+    "it": ["Lo", "lo"],
+    "we": ["Numa", "NU-ma"],
+    "us": ["Numa", "NU-ma"],
+    "they": ["Loma", "LO-ma"],
+    "them": ["Loma", "LO-ma"],
+    "go": ["Vano", "VA-no"],
+    "walk": ["Vano", "VA-no"],
+    "come": ["Marra", "MAR-ra"],
+    "eat": ["Donu", "DO-nu"],
+    "drink": ["Holu", "HO-lu"],
+    "speak": ["Karu", "KA-ru"],
+    "say": ["Karu", "KA-ru"],
+    "sleep": ["Lonu", "LO-nu"],
+    "wake": ["Vaku", "VA-ku"],
+    "see": ["Tado", "TA-do"],
+    "hear": ["Granu", "GRA-nu"],
+    "know": ["Modonu", "mo-DO-nu"],
+    "understand": ["Modonu", "mo-DO-nu"],
+    "have": ["Havu", "HA-vu"],
+    "hold": ["Havu", "HA-vu"],
+    "food": ["Donna", "DON-na"],
+    "water": ["Vata", "VA-ta"],
+    "friend": ["Horu", "HO-ru"],
+    "enemy": ["Kanu", "KA-nu"],
+    "house": ["Tova", "TO-va"],
+    "day": ["Ranu", "RA-nu"],
+    "night": ["Norru", "NOR-ru"],
+    "mother": ["Matu", "MA-tu"],
+    "father": ["Patu", "PA-tu"],
+    "brother": ["Druvu", "DRU-vu"],
+    "sister": ["Drovu", "DRO-vu"],
+    "child": ["Garu", "GA-ru"],
+    "elder": ["Oldonu", "ol-DO-nu"],
+    "name": ["Namu", "NA-mu"],
+    "hour": ["Talu", "TA-lu"],
+    "minute": ["Mintu", "MIN-tu"],
+    "now": ["Adda", "AD-da"],
+    "later": ["Kova", "KO-va"],
+    "before": ["Onna", "ON-na"],
+    "already": ["Onna", "ON-na"],
+    "one": ["Don", "don"],
+    "two": ["Dol", "dol"],
+    "three": ["Trin", "trin"],
+    "four": ["Karo", "KA-ro"],
+    "five": ["Hanu", "HA-nu"],
+    "ten": ["Modal", "MO-dal"],
+    "six": ["Sessu", "SES-su"],
+    "seven": ["Settu", "SET-tu"],
+    "eight": ["Oktu", "OK-tu"],
+    "nine": ["Novu", "NO-vu"],
+    "eleven": ["Modaldon", "mo-dal-DON"],
+    "twelve": ["Modaldol", "mo-dal-DOL"],
+    "twenty": ["Doimodal", "do-i-mo-DAL"],
+    "thirty": ["Trinmodal", "trin-mo-DAL"],
+    "forty": ["Karomodal", "ka-ro-mo-DAL"],
+    "fifty": ["Hanumodal", "ha-nu-mo-DAL"],
+    "hundred": ["Sentanu", "sen-TA-nu"],
+    "thousand": ["Milanu", "mi-LA-nu"],
+    "year": ["Eru", "E-ru"],
+    "month": ["Mensu", "MEN-su"],
+    "week": ["Semana", "se-MA-na"],
+    "tomorrow": ["Krastinu", "kras-TI-nu"],
+    "yesterday": ["Eristu", "e-RIS-tu"],
+    "morning": ["Matinu", "ma-TI-nu"],
+    "evening": ["Vesperu", "ves-PE-ru"],
+    "spring": ["Primaveru", "pri-ma-VE-ru"],
+    "summer": ["Estatu", "es-TA-tu"],
+    "autumn": ["Autonu", "au-TO-nu"],
+    "fall": ["Autonu", "au-TO-nu"],
+    "winter": ["Hiveru", "hi-VE-ru"],
+    "sunday": ["Sundagu", "sun-DA-gu"],
+    "monday": ["Mondagu", "mon-DA-gu"],
+    "tuesday": ["Tirsdagu", "tirs-DA-gu"],
+    "wednesday": ["Mersdagu", "mers-DA-gu"],
+    "thursday": ["Torsdagu", "tors-DA-gu"],
+    "friday": ["Fredagu", "fre-DA-gu"],
+    "saturday": ["Sattudagu", "sat-tu-DA-gu"],
+    "room": ["Toma", "TO-ma"],
+    "door": ["Vindu", "VIN-du"],
+    "window": ["Granda", "GRAN-da"],
+    "box": ["Karta", "KAR-ta"],
+    "chest": ["Karta", "KAR-ta"],
+    "lamp": ["Lampu", "LAM-pu"],
+    "light": ["Lampu", "LAM-pu"],
+    "street": ["Strada", "STRA-da"],
+    "road": ["Strada", "STRA-da"],
+    "big": ["Vannu", "VAN-nu"],
+    "small": ["Tinu", "TI-nu"],
+    "good": ["Haru", "HA-ru"],
+    "bad": ["Vornu", "VOR-nu"],
+    "cold": ["Holdu", "HOL-du"],
+    "warm": ["Varmu", "VAR-mu"],
+    "new": ["Nuvu", "NU-vu"],
+    "old": ["Oldu", "OL-du"],
+    "beautiful": ["Bellanu", "bel-LA-nu"],
+    "death": ["Mortu", "MOR-tu"],
+    "die": ["Karmortu", "kar-MOR-tu"],
+    "corpse": ["Dolanu", "do-LA-nu"],
+    "soul": ["Vanu", "VA-nu"],
+    "spirit": ["Vanu", "VA-nu"],
+    "ghost": ["Vanoru", "va-NO-ru"],
+    "blood": ["Sangra", "SAN-gra"],
+    "bone": ["Ossu", "OS-su"],
+    "scream": ["Kranu", "KRA-nu"],
+    "dummy": ["Karano", "ka-RA-no"],
+    "puppet": ["Karano", "ka-RA-no"],
+    "doll": ["Vodano", "vo-DA-no"],
+    "sorcerer": ["Hollovu", "hol-LO-vu"],
+    "magician": ["Hollovu", "hol-LO-vu"],
+    "curse": ["Vorgu", "VOR-gu"],
+    "possess": ["Dolmoru", "dol-MO-ru"],
+    "darkness": ["Nokto", "NOK-to"],
+    "nightmare": ["Vandolu", "van-DO-lu"],
+    "fear": ["Dravu", "DRA-vu"],
+    "terror": ["Hannoru", "han-NO-ru"],
+    "dread": ["Hannoru", "han-NO-ru"],
+    "laugh": ["Krannu", "KRAN-nu"],
+    "silence": ["Sillu", "SIL-lu"],
+    "stare": ["Vatado", "va-TA-do"],
+    "rot": ["Rottu", "ROT-tu"],
+    "decay": ["Rottu", "ROT-tu"],
+    "worm": ["Vermu", "VER-mu"],
+    "maggot": ["Vermu", "VER-mu"],
+    "grave": ["Tombo", "TOM-bo"],
+    "tomb": ["Tombo", "TOM-bo"],
+    "coffin": ["Karavu", "ka-RA-vu"],
+    "skeleton": ["Skellu", "SKEL-lu"],
+    "suffer": ["Dolgranu", "dol-GRA-nu"],
+    "suffering": ["Lodolu", "lo-DO-lu"],
+    "pain": ["Lodolu", "lo-DO-lu"],
+    "agony": ["Agonu", "a-GO-nu"],
+    "wound": ["Vlato", "VLA-to"],
+    "bleed": ["Sangranu", "san-GRA-nu"],
+    "ritual": ["Ritu", "RI-tu"],
+    "demon": ["Ovannu", "o-VAN-nu"],
+    "witch": ["Hollovordu", "hol-lo-VOR-du"],
+    "summon": ["Vokranu", "vo-KRA-nu"],
+    "bind": ["Marinu", "ma-RI-nu"],
+    "trap": ["Lomarinu", "lo-ma-RI-nu"],
+    "shadow": ["Sombra", "SOM-bra"],
+    "lurk": ["Targranu", "tar-GRA-nu"],
+    "watch": ["Targranu", "tar-GRA-nu"],
+    "madness": ["Lokrannu", "lo-KRAN-nu"],
+    "mad": ["Karlokrannu", "kar-lo-KRAN-nu"],
+    "tremble": ["Trembu", "TREM-bu"],
+    "shake": ["Trembu", "TREM-bu"],
+    "whisper": ["Hollantu", "hol-LAN-tu"],
+    "grin": ["Krodu", "KRO-du"],
+    "smirk": ["Krodu", "KRO-du"],
+    "attic": ["Attiko", "AT-ti-ko"],
+    "basement": ["Sutterro", "sut-TER-ro"],
+    "cellar": ["Sutterro", "sut-TER-ro"],
+    "cabinet": ["Karkano", "kar-KA-no"],
+    "closet": ["Karkano", "kar-KA-no"],
+    "veil": ["Vellu", "VEL-lu"],
+    "curtain": ["Vellu", "VEL-lu"],
+    "candle": ["Kandlu", "KAND-lu"],
+    "mirror": ["Mirru", "MIR-ru"],
+    "human": ["Mortavu", "mor-TA-vu"],
+    "stranger": ["Garavu", "ga-RA-vu"],
+    "master": ["Vannoru", "van-NO-ru"],
+    "owner": ["Vannoru", "van-NO-ru"],
+    "servant": ["Slavu", "SLA-vu"],
+    "slave": ["Slavu", "SLA-vu"],
+    "hunter": ["Targu", "TAR-gu"],
+    "prey": ["Targanu", "tar-GA-nu"],
+    "wanderer": ["Driftu", "DRIF-tu"],
+    "sleeper": ["Sleperu", "sle-PE-ru"],
+    "dog": ["Kanivu", "ka-NI-vu"],
+    "cat": ["Mirravu", "mir-RA-vu"],
+    "crow": ["Korvu", "KOR-vu"],
+    "raven": ["Korvu", "KOR-vu"],
+    "bat": ["Vespu", "VES-pu"],
+    "spider": ["Aranu", "a-RA-nu"],
+    "snake": ["Sserpu", "SSER-pu"],
+    "rat": ["Ratto", "RAT-to"],
+    "moth": ["Mossu", "MOS-su"],
+    "eye": ["Okku", "OK-ku"],
+    "look": ["Okkuvu", "ok-KU-vu"],
+    "gaze": ["Okkuvu", "ok-KU-vu"],
+    "voice": ["Vossu", "VOS-su"],
+    "hand": ["Manu", "MA-nu"],
+    "body": ["Korpu", "KOR-pu"],
+    "skin": ["Pellu", "PEL-lu"],
+    "heart": ["Kordu", "KOR-du"],
+
+    // conversational essentials
+    "be": ["Essu", "ES-su"],
+    "is": ["Essu", "ES-su"],
+    "am": ["Essu", "ES-su"],
+    "are": ["Essu", "ES-su"],
+    "how": ["Kovu", "KO-vu"],
+    "what": ["Kavo", "KA-vo"],
+    "where": ["Kavanu", "ka-VA-nu"],
+    "who": ["Kamortu", "ka-MOR-tu"],
+    "why": ["Kadolu", "ka-DO-lu"],
+    "want": ["Vollu", "VOL-lu"],
+    "need": ["Nessu", "NES-su"],
+    "like": ["Harvu", "HAR-vu"],
+    "love": ["Amoru", "a-MO-ru"],
+    "help": ["Sokoru", "so-KO-ru"],
+    "can": ["Possu", "POS-su"],
+    "very": ["Multo", "MUL-to"],
+    "this": ["Esto", "ES-to"],
+    "that": ["Asto", "AS-to"],
+    "here": ["Adlo", "AD-lo"],
+    "there": ["Doslo", "DOS-lo"],
+    "and": ["Et", "et"],
+    "or": ["Ol", "ol"],
+    "with": ["Ven", "ven"],
+    "today": ["Ranadda", "ran-AD-da"],
+    "fine": ["Bonu", "BO-nu"],
+    "okay": ["Bonu", "BO-nu"],
+    "well": ["Bonu", "BO-nu"],
+    "hi": ["Halu", "HA-lu"],
+    "hey": ["Halu", "HA-lu"],
+    "bye": ["Nadama", "na-DA-ma"],
+
+    // verbs, round 2
+    "run": ["Korru", "KOR-ru"],
+    "sit": ["Sedu", "SE-du"],
+    "stand": ["Stadu", "STA-du"],
+    "think": ["Pensu", "PEN-su"],
+    "buy": ["Komparu", "kom-PA-ru"],
+    "sell": ["Vendu", "VEN-du"],
+    "work": ["Laboru", "la-BO-ru"],
+    "write": ["Skrivu", "SKRI-vu"],
+    "read": ["Lektu", "LEK-tu"],
+    "make": ["Faktu", "FAK-tu"],
+    "do": ["Faktu", "FAK-tu"],
+    "give": ["Givu", "GI-vu"],
+    "take": ["Prendu", "PREN-du"],
+    "find": ["Findu", "FIN-du"],
+    "lose": ["Perdu", "PER-du"],
+    "move": ["Movu", "MO-vu"],
+    "stay": ["Restu", "RES-tu"],
+    "remain": ["Restu", "RES-tu"],
+    "live": ["Vivu", "VI-vu"],
+    "grow": ["Krescu", "KRES-ku"],
+    "change": ["Kambu", "KAM-bu"],
+    "learn": ["Aprenu", "a-PRE-nu"],
+    "teach": ["Ensenu", "en-SE-nu"],
+    "ask": ["Demandu", "de-MAN-du"],
+    "answer": ["Respondu", "res-PON-du"],
+    "pay": ["Pagu", "PA-gu"],
+    "cost": ["Kostu", "KOS-tu"],
+    "carry": ["Portu", "POR-tu"],
+    "pull": ["Tiru", "TI-ru"],
+    "push": ["Pushu", "PU-shu"],
+    "touch": ["Tokku", "TOK-ku"],
+    "feel": ["Sentu", "SEN-tu"],
+    "remember": ["Pensaru", "pen-SA-ru"],
+    "forget": ["Obliu", "OB-li-u"],
+    "hope": ["Espuru", "es-PU-ru"],
+    "try": ["Tentu", "TEN-tu"],
+    "finish": ["Finu", "FI-nu"],
+    "begin": ["Komensu", "ko-MEN-su"],
+    "start": ["Komensu", "ko-MEN-su"],
+    "wait": ["Atendu", "a-TEN-du"],
+    "fly": ["Volu", "VO-lu"],
+    "fall": ["Kadu", "KA-du"],
+    "jump": ["Salu", "SA-lu"],
+    "swim": ["Nadu", "NA-du"],
+    "build": ["Konstru", "KON-stru"],
+    "destroy": ["Distru", "DIS-tru"],
+    "protect": ["Protegu", "pro-TE-gu"],
+    "attack": ["Atakku", "a-TAK-ku"],
+    "defend": ["Defendu", "de-FEN-du"],
+    "win": ["Vinku", "VIN-ku"],
+    "meet": ["Inkontru", "in-KON-tru"],
+
+    // emotions & feelings
+    "happy": ["Galadu", "ga-LA-du"],
+    "joyful": ["Galadu", "ga-LA-du"],
+    "sad": ["Tristu", "TRIS-tu"],
+    "angry": ["Furiu", "FU-ri-u"],
+    "calm": ["Kalmu", "KAL-mu"],
+    "stressed": ["Stressu", "STRES-su"],
+    "tired": ["Fatigu", "fa-TI-gu"],
+    "bored": ["Boredu", "bo-RE-du"],
+    "excited": ["Eksitu", "ek-SI-tu"],
+    "nervous": ["Nervu", "NER-vu"],
+    "confused": ["Konfusu", "kon-FU-su"],
+    "surprised": ["Surprenu", "sur-PRE-nu"],
+    "jealous": ["Jelu", "JE-lu"],
+    "proud": ["Orgolu", "or-GO-lu"],
+    "ashamed": ["Vergonu", "ver-GO-nu"],
+    "embarrassed": ["Vergonu", "ver-GO-nu"],
+    "lonely": ["Solu", "SO-lu"],
+    "comfortable": ["Konfortu", "kon-FOR-tu"],
+    "insecure": ["Insekuru", "in-se-KU-ru"],
+    "hopeful": ["Sperantu", "spe-RAN-tu"],
+    "hopeless": ["Desperu", "des-PE-ru"],
+    "desperate": ["Desperu", "des-PE-ru"],
+    "satisfied": ["Kontentu", "kon-TEN-tu"],
+    "content": ["Kontentu", "kon-TEN-tu"],
+    "frustrated": ["Frustru", "FRUS-tru"],
+    "curious": ["Kuriozu", "ku-ri-O-zu"],
+    "indifferent": ["Indiferu", "in-di-FE-ru"],
+    "grateful": ["Grattu", "GRAT-tu"],
+    "bitter": ["Amaru", "a-MA-ru"],
+    "patient": ["Pasenu", "pa-SE-nu"],
+    "impatient": ["Impasenu", "im-pa-SE-nu"],
+
+    // articles & prepositions (grammar words with no direct Karranoi equivalent --
+    // Karranoi has no articles, so these map to the closest functional word or are dropped)
+    "of": ["Ven", "ven"],
+    "to": ["Vano", "VA-no"],
+    "for": ["Ven", "ven"],
+    "in": ["Adlo", "AD-lo"],
+    "on": ["Adlo", "AD-lo"],
+    "at": ["Adlo", "AD-lo"],
+    "from": ["Doslo", "DOS-lo"],
+
+    // common objects
+    "phone": ["Telefonu", "te-le-FO-nu"],
+    "computer": ["Komputu", "kom-PU-tu"],
+    "car": ["Vetturu", "vet-TU-ru"],
+    "money": ["Moneta", "mo-NE-ta"],
+    "clothes": ["Vestu", "VES-tu"],
+    "shoe": ["Skarpu", "SKAR-pu"],
+    "bag": ["Saku", "SA-ku"],
+    "key": ["Klavu", "KLA-vu"],
+    "paper": ["Pappiru", "pap-PI-ru"],
+    "pen": ["Pennu", "PEN-nu"],
+    "book": ["Libru", "LI-bru"],
+    "table": ["Tablu", "TAB-lu"],
+    "chair": ["Seju", "SE-ju"],
+    "bed": ["Bettu", "BET-tu"],
+    "plate": ["Pjattu", "PJAT-tu"],
+    "cup": ["Kuppu", "KUP-pu"],
+    "knife": ["Kutellu", "ku-TEL-lu"],
+    "fork": ["Forku", "FOR-ku"],
+    "clock": ["Klotsu", "KLOT-su"],
+    "wallet": ["Borsu", "BOR-su"],
+    "ring": ["Anellu", "a-NEL-lu"],
+    "glasses": ["Okkialu", "ok-ki-A-lu"],
+    "hat": ["Kappellu", "kap-PEL-lu"],
+    "umbrella": ["Umbrellu", "um-BREL-lu"],
+
+    // places & nature
+    "forest": ["Forestu", "fo-RES-tu"],
+    "mountain": ["Montanu", "mon-TA-nu"],
+    "city": ["Cittu", "CHIT-tu"],
+    "village": ["Vilagu", "vi-LA-gu"],
+    "ocean": ["Oceanu", "o-che-A-nu"],
+    "lake": ["Lagu", "LA-gu"],
+    "river": ["Riveru", "ri-VE-ru"],
+    "field": ["Campu", "KAM-pu"],
+    "desert": ["Dezertu", "de-ZER-tu"],
+    "island": ["Islu", "IS-lu"],
+    "valley": ["Vallu", "VAL-lu"],
+    "beach": ["Beachu", "BE-a-chu"],
+    "tree": ["Arbu", "AR-bu"],
+    "flower": ["Florru", "FLOR-ru"],
+    "grass": ["Erbu", "ER-bu"],
+    "woods": ["Skogu", "SKO-gu"],
+    "stone": ["Pietra", "pi-E-tra"],
+    "rock": ["Pietra", "pi-E-tra"],
+    "sand": ["Sablu", "SAB-lu"],
+    "fog": ["Nebla", "NE-bla"],
+    "rain": ["Plovu", "PLO-vu"],
+    "wind": ["Vintu", "VIN-tu"],
+    "sun": ["Soliu", "SO-li-u"],
+    "moon": ["Lunu", "LU-nu"],
+    "star": ["Stelu", "STE-lu"]
+  };
+
+  const translateInput = document.getElementById('translate-input');
+  const translateBtn = document.getElementById('translate-btn');
+  const translateResult = document.getElementById('translate-result');
+  const translatePronunciation = document.getElementById('translate-pronunciation');
+
+  // English number-words that, per Karranoi grammar, force the following noun to stay singular
+  const numberWords = new Set([
+    'one','two','three','four','five','six','seven','eight','nine','ten',
+    'eleven','twelve','twenty','thirty','forty','fifty','hundred','thousand',
+    '1','2','3','4','5','6','7','8','9','10','11','12','20','30','40','50','100','1000'
+  ]);
+
+  // Karranoi class-ending vowels -- a plural is built by adding -i directly after one of these
+  const classEndings = ['u','a','o'];
+
+  function stripPunctuation(word){
+    return word.replace(/[.,!?;:'"]/g, '');
+  }
+
+  // Try to resolve an English word to a [singularLexiconKey, wasPlural] pair.
+  // Handles simple English plurals: stars -> star, boxes -> box, knives -> knife (best-effort).
+  function resolveLemma(clean){
+    if (lexicon[clean]) return [clean, false];
+    // common English plural patterns, checked longest-suffix-first
+    if (clean.endsWith('ies') && lexicon[clean.slice(0, -3) + 'y']){
+      return [clean.slice(0, -3) + 'y', true];
+    }
+    if (clean.endsWith('ves') && lexicon[clean.slice(0, -3) + 'fe']){
+      return [clean.slice(0, -3) + 'fe', true];
+    }
+    if (clean.endsWith('es') && lexicon[clean.slice(0, -2)]){
+      return [clean.slice(0, -2), true];
+    }
+    if (clean.endsWith('s') && clean.length > 1 && lexicon[clean.slice(0, -1)]){
+      return [clean.slice(0, -1), true];
+    }
+    return [null, false];
+  }
+
+  // Apply Karranoi's plural marker: add -i after the existing class-ending vowel.
+  function pluralizeKarranoi(word){
+    const lastChar = word.slice(-1).toLowerCase();
+    if (classEndings.includes(lastChar)){
+      return word + 'i';
+    }
+    // word has no recognizable class ending (function word, adjective, etc.) -- just append i
+    return word + 'i';
+  }
+
+  function runTranslation(){
+    const raw = translateInput.value.trim();
+    if (!raw){
+      translateResult.innerHTML = '&mdash;';
+      translatePronunciation.innerHTML = '&mdash;';
+      return;
+    }
+    const words = raw.split(/\s+/);
+    const karranoiParts = [];
+    const pronunciationParts = [];
+    let precededByNumber = false;
+
+    words.forEach(w => {
+      const clean = stripPunctuation(w).toLowerCase();
+      if (!clean) return;
+
+      const isNumberWord = numberWords.has(clean);
+      const [lemma, wasPlural] = resolveLemma(clean);
+
+      if (lemma && lexicon[lemma]){
+        let [karr, pron] = lexicon[lemma];
+        // Apply Karranoi plural only if English word was plural AND no number word came right before it
+        if (wasPlural && !precededByNumber){
+          karr = pluralizeKarranoi(karr);
+          pron = pron + '-i';
+        }
+        karranoiParts.push('<span class="word-found">' + karr + '</span>');
+        pronunciationParts.push(pron);
+      } else {
+        karranoiParts.push('<span class="word-missing">' + w + '</span>');
+        pronunciationParts.push('&hellip;');
+      }
+
+      precededByNumber = isNumberWord;
+    });
+
+    translateResult.innerHTML = karranoiParts.length ? karranoiParts.join(' ') : '&mdash;';
+    translatePronunciation.innerHTML = pronunciationParts.length ? pronunciationParts.join(' &middot; ') : '&mdash;';
+  }
+
+
+  translateBtn.addEventListener('click', runTranslation);
+  translateInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey){
+      e.preventDefault();
+      runTranslation();
+    }
+  });
+</script>
+
+</body>
+</html>
